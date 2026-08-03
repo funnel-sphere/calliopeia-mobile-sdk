@@ -15,7 +15,7 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 | --- | --- | --- |
 | Swift/Kotlin contracts | Apache-2.0 | Yes |
 | iOS/Android raw audio capture | Apache-2.0 | Yes |
-| iOS Calliopeia API client | Apache-2.0 | Yes |
+| iOS/Android Calliopeia API client | Apache-2.0 | Yes |
 | Quality-inspection extension interface | Apache-2.0 | Yes |
 | Calliopeia edge-processing runtime | Commercial | No |
 | Model weights | Weight-specific terms | No |
@@ -25,13 +25,38 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 品質検査や補正を追加する場合は、`AudioFrameInspecting` / `AudioFrameInspector`
 を実装する別配布のランタイムを注入します。
 
-## iOS
+## iOS (Swift Package Manager)
 
-XcodeのPackage Dependenciesへ次を追加します。
+XcodeのPackage Dependenciesへ次を追加し、`0.1.0`以降を指定します。
 
 ```text
 https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```
+
+`Package.swift`から指定する場合:
+
+```swift
+.package(
+    url: "https://github.com/funnel-sphere/calliopeia-mobile-sdk.git",
+    from: "0.1.0"
+)
+```
+
+## iOS (CocoaPods)
+
+`Podfile`からGitHubのリリースタグを直接指定できます。
+
+```ruby
+pod 'CalliopeiaSDK',
+    git: 'https://github.com/funnel-sphere/calliopeia-mobile-sdk.git',
+    tag: '0.1.0'
+```
+
+```bash
+pod install
+```
+
+## iOS API
 
 ホストアプリの`Info.plist`には`NSMicrophoneUsageDescription`が必要です。
 
@@ -73,34 +98,63 @@ let result = try await api.getJob(id: submission.job.id)
 
 ## Android
 
-現在の公開Androidモジュールは録音・契約層です。リポジトリを取得し、
-ホストプロジェクトから`audio-contracts`と`audio-capture`を組み込めます。
+JitPackを利用すると、GitHubのリリースタグからMaven依存関係として直接導入できます。
+`settings.gradle.kts`へリポジトリを追加します。
 
 ```kotlin
-includeBuild("../calliopeia-mobile-sdk/android")
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
 ```
 
 ```kotlin
 dependencies {
-    implementation("com.calliopeia:audio-contracts")
-    implementation("com.calliopeia:audio-capture")
+    implementation(
+        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.1.0"
+    )
 }
 ```
 
 アプリ側で`RECORD_AUDIO`のランタイム権限を取得してから開始します。
 
 ```kotlin
-val recorder = HighFidelityRecorder(context)
-val format = recorder.start(
-    rawMasterFile = outputFile,
-    mode = CaptureMode.RAW_MASTER,
+val credentials = CalliopeiaCredentialProvider {
+    CalliopeiaCredential(value = session.currentAccessToken())
+}
+val api = CalliopeiaAPIClient(
+    configuration = CalliopeiaAPIConfiguration(
+        graphQLEndpoint = URI.create(environment.calliopeiaGraphQLEndpoint),
+        appSyncAPIKey = environment.calliopeiaAppSyncAPIKey,
+        pullAPIBaseURL = URI.create(environment.calliopeiaPullAPIBaseURL),
+    ),
+    credentialProvider = credentials,
 )
-// Stop from the host lifecycle before submitting the file.
-recorder.stop()
+val recorder = CalliopeiaRecordingClient(context, api)
+
+recorder.startRecording(mode = CaptureMode.RAW_MASTER)
+
+lifecycleScope.launch {
+    val request = CalliopeiaAudioJobRequest(
+        extractionEffort = CalliopeiaExtractionEffort.MAXIMUM,
+        auditMode = CalliopeiaAuditMode.OBSERVE,
+        auditEffort = CalliopeiaAuditEffort.MAXIMUM,
+        auditStrategy = CalliopeiaAuditStrategy.ATOMIC_BATCH,
+        passthrough = buildJsonObject {
+            put("crm_customer_id", customerID)
+            put("source", "mobile")
+        },
+    )
+    val (_, submission) = recorder.stopAndSubmit(request)
+    val result = api.getJob(submission.job.id)
+}
 ```
 
-AndroidのCalliopeia APIファサードとMaven配布は今後の公開対象です。現時点では
-ホストアプリのHTTPクライアントからAPIへ接続してください。
+`CalliopeiaTransport`を実装して差し込めば、既存のHTTPクライアントや監視処理へ
+置き換えられます。標準実装は大きな音声ファイルをメモリへ載せずストリーミングします。
 
 ## パススルー情報
 
@@ -112,8 +166,9 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 
 ```bash
 swift test
+pod lib lint CalliopeiaSDK.podspec --allow-warnings
 cd android
-./gradlew test lint
+./gradlew test lint publishToMavenLocal
 ```
 
 ## License

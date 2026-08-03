@@ -1,6 +1,8 @@
 #if os(iOS)
 import AVFoundation
+#if canImport(CalliopeiaAudioContracts)
 import CalliopeiaAudioContracts
+#endif
 import Foundation
 
 public final class HighFidelityRecorder: @unchecked Sendable {

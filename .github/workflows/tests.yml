@@ -22,6 +22,9 @@ jobs:
       - name: Run Swift tests
         run: swift test
 
+      - name: Validate CocoaPods specification
+        run: pod lib lint CalliopeiaSDK.podspec --allow-warnings
+
   android:
     name: Android libraries
     runs-on: ubuntu-latest
@@ -46,4 +49,4 @@ jobs:
 
       - name: Run Android tests and lint
         working-directory: android
-        run: ./gradlew test lint
+        run: ./gradlew test lint publishToMavenLocal

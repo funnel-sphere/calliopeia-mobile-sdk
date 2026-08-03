@@ -15,7 +15,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "calliopeia-mobile-sdk"
-include(":audio-contracts", ":audio-capture")
+include(":audio-contracts", ":audio-capture", ":calliopeia-sdk")
 
 project(":audio-contracts").name = "audio-contracts"
 project(":audio-capture").name = "audio-capture"
+project(":calliopeia-sdk").name = "calliopeia-sdk"

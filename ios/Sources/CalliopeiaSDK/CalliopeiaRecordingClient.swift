@@ -1,7 +1,11 @@
 #if os(iOS)
 import AVFoundation
+#if canImport(CalliopeiaAudioCapture)
 import CalliopeiaAudioCapture
+#endif
+#if canImport(CalliopeiaAudioContracts)
 import CalliopeiaAudioContracts
+#endif
 import Foundation
 
 public struct CalliopeiaRecordedAudio: Sendable {

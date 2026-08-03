@@ -8,7 +8,7 @@ group = providers.gradleProperty("group").orElse("com.calliopeia").get()
 version = providers.gradleProperty("version").orElse("0.1.0").get()
 
 android {
-    namespace = "com.calliopeia.edgeaudio.contracts"
+    namespace = "com.calliopeia.sdk"
     compileSdk = 36
 
     defaultConfig { minSdk = 26 }
@@ -25,6 +25,12 @@ android {
 }
 
 dependencies {
+    api(project(":audio-contracts"))
+    api(project(":audio-capture"))
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("androidx.annotation:annotation:1.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -35,8 +41,8 @@ afterEvaluate {
                 from(components["release"])
                 artifactId = project.name
                 pom {
-                    name.set("Calliopeia Audio Contracts")
-                    description.set("Shared audio capture and quality inspection contracts for Calliopeia mobile SDKs.")
+                    name.set("Calliopeia Android SDK")
+                    description.set("Android recording and API facade for Calliopeia audio analysis.")
                     url.set("https://github.com/funnel-sphere/calliopeia-mobile-sdk")
                     licenses {
                         license {

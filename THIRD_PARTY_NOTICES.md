@@ -8,6 +8,8 @@ Their own license terms continue to apply.
 | AndroidX Annotation | Android API annotations | Apache-2.0 |
 | Android Gradle Plugin | Android build tooling | Apache-2.0 |
 | Kotlin | Android language and build plugin | Apache-2.0 |
+| Kotlin Coroutines | Android asynchronous I/O runtime | Apache-2.0 |
+| Kotlin Serialization | Android JSON model and parser | Apache-2.0 |
 | Gradle Wrapper | Reproducible Android builds | Apache-2.0 |
 | JUnit 4 | Android unit tests only | EPL-1.0 |
 
