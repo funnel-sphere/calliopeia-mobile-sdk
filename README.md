@@ -168,7 +168,7 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 
 - [iOS SwiftUI sample](samples/ios/README.md): Xcodeで
   `samples/ios/CalliopeiaSample.xcodeproj`を開きます。
-- [Android sample](android/sample-app/README.md): Android Studioで`android`を開き、
+- [Android sample](samples/android/README.md): Android Studioで`android`を開き、
   `sample-app`を実行します。
 
 サンプルへ入力した認証情報は端末へ永続化しません。本番アプリでは、ログイン済みの

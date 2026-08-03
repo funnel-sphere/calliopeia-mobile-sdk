@@ -6,6 +6,7 @@ artifacts/
 *.xcresult
 android/.gradle/
 android/**/build/
+samples/android/build/
 android/local.properties
 *.aar
 *.so

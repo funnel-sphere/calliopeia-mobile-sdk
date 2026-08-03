@@ -21,4 +21,4 @@ include(":sample-app")
 project(":audio-contracts").name = "audio-contracts"
 project(":audio-capture").name = "audio-capture"
 project(":calliopeia-sdk").name = "calliopeia-sdk"
-project(":sample-app").name = "sample-app"
+project(":sample-app").projectDir = file("../samples/android")
