@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+*.xcresult
+android/.gradle/
+android/**/build/
+android/local.properties
+*.aar
+*.so
+*.onnx
+*.wav
+*.m4a
+*.mp3
