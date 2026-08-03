@@ -45,15 +45,27 @@ public struct StaticCalliopeiaCredentialProvider: CalliopeiaCredentialProvider {
     }
 }
 
+public enum CalliopeiaGraphQLAuthorization: Sendable {
+    case apiKey
+    case cognitoUserPools
+}
+
 public struct CalliopeiaAPIConfiguration: Sendable {
     public let graphQLEndpoint: URL
     public let appSyncAPIKey: String
     public let pullAPIBaseURL: URL?
+    public let graphQLAuthorization: CalliopeiaGraphQLAuthorization
 
-    public init(graphQLEndpoint: URL, appSyncAPIKey: String, pullAPIBaseURL: URL? = nil) {
+    public init(
+        graphQLEndpoint: URL,
+        appSyncAPIKey: String,
+        pullAPIBaseURL: URL? = nil,
+        graphQLAuthorization: CalliopeiaGraphQLAuthorization = .apiKey
+    ) {
         self.graphQLEndpoint = graphQLEndpoint
         self.appSyncAPIKey = appSyncAPIKey
         self.pullAPIBaseURL = pullAPIBaseURL
+        self.graphQLAuthorization = graphQLAuthorization
     }
 }
 

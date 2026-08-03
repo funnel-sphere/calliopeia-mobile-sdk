@@ -27,7 +27,7 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 
 ## iOS (Swift Package Manager)
 
-XcodeのPackage Dependenciesへ次を追加し、`0.1.0`以降を指定します。
+XcodeのPackage Dependenciesへ次を追加し、`0.1.1`以降を指定します。
 
 ```text
 https://github.com/funnel-sphere/calliopeia-mobile-sdk
@@ -38,7 +38,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```swift
 .package(
     url: "https://github.com/funnel-sphere/calliopeia-mobile-sdk.git",
-    from: "0.1.0"
+    from: "0.1.1"
 )
 ```
 
@@ -49,7 +49,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```ruby
 pod 'CalliopeiaSDK',
     git: 'https://github.com/funnel-sphere/calliopeia-mobile-sdk.git',
-    tag: '0.1.0'
+    tag: '0.1.1'
 ```
 
 ```bash
@@ -70,7 +70,8 @@ let api = CalliopeiaAPIClient(
     configuration: .init(
         graphQLEndpoint: environment.calliopeiaGraphQLEndpoint,
         appSyncAPIKey: environment.calliopeiaAppSyncAPIKey,
-        pullAPIBaseURL: environment.calliopeiaPullAPIBaseURL
+        pullAPIBaseURL: environment.calliopeiaPullAPIBaseURL,
+        graphQLAuthorization: .cognitoUserPools
     ),
     credentialProvider: credentials
 )
@@ -93,8 +94,11 @@ let (_, submission) = try await recorder.stopAndSubmit(request: request)
 let result = try await api.getJob(id: submission.job.id)
 ```
 
-長期APIキーや固定JWTをアプリへ埋め込まないでください。認証済みセッションから
-短期JWTを返す`CalliopeiaCredentialProvider`を実装します。
+同じCalliopeia Cognito User Poolへログインするアプリは
+`graphQLAuthorization: .cognitoUserPools`を指定します。外部テナントが独自JWTまたは
+Calliopeia APIキーを使う場合は既定の`.apiKey`のままにし、AppSync公開キーと外部
+credentialを別々に設定します。長期APIキーや固定JWTをアプリへ埋め込まず、認証済み
+セッションから短期JWTを返す`CalliopeiaCredentialProvider`を実装してください。
 
 ## Android
 
@@ -114,7 +118,7 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     implementation(
-        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.1.0"
+        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.1.1"
     )
 }
 ```
@@ -130,6 +134,7 @@ val api = CalliopeiaAPIClient(
         graphQLEndpoint = URI.create(environment.calliopeiaGraphQLEndpoint),
         appSyncAPIKey = environment.calliopeiaAppSyncAPIKey,
         pullAPIBaseURL = URI.create(environment.calliopeiaPullAPIBaseURL),
+        graphQLAuthorization = CalliopeiaGraphQLAuthorization.COGNITO_USER_POOLS,
     ),
     credentialProvider = credentials,
 )
@@ -153,7 +158,9 @@ lifecycleScope.launch {
 }
 ```
 
-`CalliopeiaTransport`を実装して差し込めば、既存のHTTPクライアントや監視処理へ
+同じCalliopeia Cognito User Poolへログインしない外部アプリでは、既定の
+`CalliopeiaGraphQLAuthorization.API_KEY`を使用します。`CalliopeiaTransport`を
+実装して差し込めば、既存のHTTPクライアントや監視処理へ
 置き換えられます。標準実装は大きな音声ファイルをメモリへ載せずストリーミングします。
 
 ## パススルー情報

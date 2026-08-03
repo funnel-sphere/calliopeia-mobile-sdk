@@ -54,6 +54,8 @@ class CalliopeiaAPIClientTest {
 
         assertEquals("abc", result.job.id)
         assertEquals(3, transport.requests.size)
+        assertEquals("public-appsync-key", transport.requests[0].headers["x-api-key"])
+        assertEquals(null, transport.requests[0].headers["Authorization"])
         val upload = transport.requests[1]
         assertEquals("PUT", upload.method)
         assertEquals("audio/wav", upload.headers["Content-Type"])
@@ -136,6 +138,30 @@ class CalliopeiaAPIClientTest {
         val request = transport.requests.single()
         assertEquals("https://pull.example.com/v1/jobs/job-123", request.uri.toString())
         assertEquals("Bearer refreshed-api-key", request.headers["Authorization"])
+    }
+
+    @Test
+    fun cognitoGraphQLAuthorizationUsesRawJWT() = runBlocking {
+        val transport = QueueTransport(
+            jsonResponse(
+                """{"data":{"externalCreateAudioUpload":{"success":true,"error":null,"upload":{"objectKey":"tenant/audio.wav","uploadUrl":"https://upload.example.com/audio.wav","method":"PUT","contentType":"audio/wav","expiresAt":null}}}}""",
+            ),
+        )
+        val client = CalliopeiaAPIClient(
+            configuration = configuration().copy(
+                graphQLAuthorization = CalliopeiaGraphQLAuthorization.COGNITO_USER_POOLS,
+            ),
+            credentialProvider = StaticCalliopeiaCredentialProvider(
+                CalliopeiaCredential("cognito-id-token"),
+            ),
+            transport = transport,
+        )
+
+        val ticket = client.createAudioUpload("audio.wav", "audio/wav")
+
+        assertEquals("tenant/audio.wav", ticket.objectKey)
+        assertEquals("cognito-id-token", transport.requests.single().headers["Authorization"])
+        assertEquals(null, transport.requests.single().headers["x-api-key"])
     }
 
     private fun client(transport: CalliopeiaTransport) = CalliopeiaAPIClient(

@@ -30,7 +30,8 @@ public actor CalliopeiaAPIClient {
         ]
         let payload: CreateAudioUploadPayload = try await graphQL(
             query: Self.createAudioUploadMutation,
-            variables: variables
+            variables: variables,
+            credential: credential
         )
         guard payload.externalCreateAudioUpload.success,
               let upload = payload.externalCreateAudioUpload.upload else {
@@ -110,7 +111,8 @@ public actor CalliopeiaAPIClient {
 
         let payload: InvokeAudioJobPayload = try await graphQL(
             query: Self.invokeAudioJobMutation,
-            variables: variables
+            variables: variables,
+            credential: credential
         )
         let result = payload.externalInvokeAudioJob
         guard result.success, let job = result.job else {
@@ -160,7 +162,8 @@ public actor CalliopeiaAPIClient {
         ]
         let payload: GetAudioJobPayload = try await graphQL(
             query: Self.getAudioJobQuery,
-            variables: variables
+            variables: variables,
+            credential: credential
         )
         guard payload.externalGetJob.success, let job = payload.externalGetJob.job else {
             throw CalliopeiaSDKError.service(
@@ -193,12 +196,23 @@ public actor CalliopeiaAPIClient {
 
     private func graphQL<Payload: Decodable>(
         query: String,
-        variables: [String: JSONValue]
+        variables: [String: JSONValue],
+        credential: CalliopeiaCredential
     ) async throws -> Payload {
         var request = URLRequest(url: configuration.graphQLEndpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(configuration.appSyncAPIKey, forHTTPHeaderField: "x-api-key")
+        switch configuration.graphQLAuthorization {
+        case .apiKey:
+            request.setValue(configuration.appSyncAPIKey, forHTTPHeaderField: "x-api-key")
+        case .cognitoUserPools:
+            guard credential.type == .jwt else {
+                throw CalliopeiaSDKError.invalidRequest(
+                    "Cognito User Pools GraphQL authorization requires a JWT credential"
+                )
+            }
+            request.setValue(credential.value, forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try encoder.encode(GraphQLRequest(query: query, variables: variables))
         let (data, response) = try await session.data(for: request)
         try Self.validateHTTP(response: response, body: data)

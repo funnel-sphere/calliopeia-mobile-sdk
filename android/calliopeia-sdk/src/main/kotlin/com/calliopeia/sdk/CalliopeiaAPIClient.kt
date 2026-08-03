@@ -35,6 +35,7 @@ class CalliopeiaAPIClient(
                 "fileName" to JsonPrimitive(fileName),
                 "contentType" to JsonPrimitive(contentType),
             ),
+            credential = credential,
         )
         val result = data.requiredObject("externalCreateAudioUpload")
         if (result.boolean("success") != true) {
@@ -128,7 +129,7 @@ class CalliopeiaAPIClient(
         val credential = credentialProvider.credential()
         variables["credential"] = JsonPrimitive(credential.value)
         variables["authType"] = JsonPrimitive(credential.type.apiValue)
-        val data = graphQL(INVOKE_AUDIO_JOB_MUTATION, variables)
+        val data = graphQL(INVOKE_AUDIO_JOB_MUTATION, variables, credential)
         val result = data.requiredObject("externalInvokeAudioJob")
         if (result.boolean("success") != true) {
             throw CalliopeiaSDKException.Service(
@@ -171,6 +172,7 @@ class CalliopeiaAPIClient(
                 "authType" to JsonPrimitive(credential.type.apiValue),
                 "id" to JsonPrimitive(id),
             ),
+            credential = credential,
         )
         val result = data.requiredObject("externalGetJob")
         if (result.boolean("success") != true) {
@@ -212,6 +214,7 @@ class CalliopeiaAPIClient(
     private suspend fun graphQL(
         query: String,
         variables: Map<String, JsonElement>,
+        credential: CalliopeiaCredential,
     ): JsonObject {
         val body = JsonObject(
             mapOf(
@@ -219,14 +222,26 @@ class CalliopeiaAPIClient(
                 "variables" to JsonObject(variables),
             ),
         ).toString().encodeToByteArray()
+        val authorizationHeaders = when (configuration.graphQLAuthorization) {
+            CalliopeiaGraphQLAuthorization.API_KEY -> mapOf(
+                "x-api-key" to configuration.appSyncAPIKey,
+            )
+            CalliopeiaGraphQLAuthorization.COGNITO_USER_POOLS -> {
+                if (credential.type != CalliopeiaCredentialType.JWT) {
+                    throw CalliopeiaSDKException.InvalidRequest(
+                        "Cognito User Pools GraphQL authorization requires a JWT credential",
+                    )
+                }
+                mapOf("Authorization" to credential.value)
+            }
+        }
         val response = transport.execute(
             CalliopeiaTransportRequest(
                 uri = configuration.graphQLEndpoint,
                 method = "POST",
                 headers = mapOf(
                     "Content-Type" to "application/json",
-                    "x-api-key" to configuration.appSyncAPIKey,
-                ),
+                ) + authorizationHeaders,
                 body = CalliopeiaRequestBody.Bytes(body),
             ),
         )

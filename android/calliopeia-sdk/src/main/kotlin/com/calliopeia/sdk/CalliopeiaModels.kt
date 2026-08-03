@@ -25,10 +25,16 @@ class StaticCalliopeiaCredentialProvider(
     override suspend fun credential(): CalliopeiaCredential = storedCredential
 }
 
+enum class CalliopeiaGraphQLAuthorization {
+    API_KEY,
+    COGNITO_USER_POOLS,
+}
+
 data class CalliopeiaAPIConfiguration(
     val graphQLEndpoint: URI,
     val appSyncAPIKey: String,
     val pullAPIBaseURL: URI? = null,
+    val graphQLAuthorization: CalliopeiaGraphQLAuthorization = CalliopeiaGraphQLAuthorization.API_KEY,
 )
 
 enum class CalliopeiaResponseMode(val apiValue: String) {

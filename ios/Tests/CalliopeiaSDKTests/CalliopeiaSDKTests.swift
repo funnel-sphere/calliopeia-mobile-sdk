@@ -113,6 +113,8 @@ final class CalliopeiaSDKTests: XCTestCase {
 
     func testGetJobUsesGraphQLWithCurrentJWTCredential() async throws {
         URLProtocolStub.handler = { request in
+            XCTAssertEqual(request.value(forHTTPHeaderField: "x-api-key"), "public-appsync-key")
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
             let body = try request.bodyData()
             let object = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
             let variables = try XCTUnwrap(object["variables"] as? [String: Any])
@@ -141,6 +143,32 @@ final class CalliopeiaSDKTests: XCTestCase {
         XCTAssertEqual(job.id, "job-123")
         XCTAssertEqual(job.auditMode, "OBSERVE")
         XCTAssertEqual(job.passthrough, .object(["crm_id": .string("C-123")]))
+    }
+
+    func testCognitoGraphQLAuthorizationUsesRawJWT() async throws {
+        URLProtocolStub.handler = { request in
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "cognito-id-token")
+            XCTAssertNil(request.value(forHTTPHeaderField: "x-api-key"))
+            return Self.jsonResponse(
+                url: request.url!,
+                body: #"{"data":{"externalCreateAudioUpload":{"success":true,"error":null,"upload":{"objectKey":"tenant/audio.wav","uploadUrl":"https://upload.example.com/audio.wav","method":"PUT","contentType":"audio/wav","expiresAt":null}}}}"#
+            )
+        }
+
+        let client = CalliopeiaAPIClient(
+            configuration: .init(
+                graphQLEndpoint: URL(string: "https://graphql.example.com/graphql")!,
+                appSyncAPIKey: "unused-api-key",
+                graphQLAuthorization: .cognitoUserPools
+            ),
+            credentialProvider: StaticCalliopeiaCredentialProvider(
+                .init(value: "cognito-id-token", type: .jwt)
+            ),
+            session: Self.stubSession()
+        )
+
+        let ticket = try await client.createAudioUpload(fileName: "audio.wav", contentType: "audio/wav")
+        XCTAssertEqual(ticket.objectKey, "tenant/audio.wav")
     }
 
     func testGetPullJobUsesCurrentAPIKeyCredential() async throws {
