@@ -25,6 +25,16 @@ jobs:
       - name: Validate CocoaPods specification
         run: pod lib lint CalliopeiaSDK.podspec --allow-warnings
 
+      - name: Build iOS sample app
+        run: >-
+          xcodebuild
+          -project samples/ios/CalliopeiaSample.xcodeproj
+          -scheme CalliopeiaSample
+          -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO
+          build
+
   android:
     name: Android libraries
     runs-on: ubuntu-latest

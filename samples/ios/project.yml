@@ -1,0 +1,51 @@
+name: CalliopeiaSample
+options:
+  bundleIdPrefix: com.funnelsphere.calliopeia
+  deploymentTarget:
+    iOS: "15.0"
+packages:
+  CalliopeiaMobileSDK:
+    path: ../..
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+targets:
+  CalliopeiaSample:
+    type: application
+    platform: iOS
+    sources:
+      - path: CalliopeiaSample
+    dependencies:
+      - package: CalliopeiaMobileSDK
+        product: CalliopeiaSDK
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.funnelsphere.calliopeia.sample
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Calliopeia Sample
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Calliopeiaへ送信する音声を録音します。
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+  CalliopeiaSampleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: CalliopeiaSampleUITests
+    dependencies:
+      - target: CalliopeiaSample
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.funnelsphere.calliopeia.sample.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  CalliopeiaSample:
+    build:
+      targets:
+        CalliopeiaSample: all
+        CalliopeiaSampleUITests: [test]
+    test:
+      targets:
+        - CalliopeiaSampleUITests

@@ -1,0 +1,449 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09298F609B8C5F6D19B2A6A1 /* CalliopeiaSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6A4553A1C8A5A498D3191B /* CalliopeiaSampleUITests.swift */; };
+		2E5733E96697C7B5760D8591 /* CalliopeiaSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */; };
+		5F6BAB86F5E0B7834D511878 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8132687B4F04AD9CBA493B4D /* SampleModel.swift */; };
+		71F537AE045737399D83341E /* CalliopeiaSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */; };
+		9711185781E5A037C56776DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48ACA0508594B61F6FC07DD3 /* ContentView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DB15B301A72654E723E6644F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2537D6C8B74769F2F47CB327 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EF0DCC0E590B74C6590F0969;
+			remoteInfo = CalliopeiaSample;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0BD31041C80EEF55EA4557E7 /* CalliopeiaSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CalliopeiaSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F6A4553A1C8A5A498D3191B /* CalliopeiaSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalliopeiaSampleUITests.swift; sourceTree = "<group>"; };
+		48ACA0508594B61F6FC07DD3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8132687B4F04AD9CBA493B4D /* SampleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
+		9FF43D081D32C4C6F62F7E4B /* calliopeia-mobile-sdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "calliopeia-mobile-sdk"; path = ../..; sourceTree = SOURCE_ROOT; };
+		C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalliopeiaSampleApp.swift; sourceTree = "<group>"; };
+		E0AE52D1E105974B272E2583 /* CalliopeiaSampleUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CalliopeiaSampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		98D4AC2369A18BA3B25AC531 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71F537AE045737399D83341E /* CalliopeiaSDK in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		045C2C8C7C629D582076CE77 = {
+			isa = PBXGroup;
+			children = (
+				5A73E2628C2BF5E64F09C185 /* CalliopeiaSample */,
+				16E85134C07BE64642762D22 /* CalliopeiaSampleUITests */,
+				68919CAFEB81DA623950777D /* Packages */,
+				1C4D37268F45D593E9159F32 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		16E85134C07BE64642762D22 /* CalliopeiaSampleUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3F6A4553A1C8A5A498D3191B /* CalliopeiaSampleUITests.swift */,
+			);
+			path = CalliopeiaSampleUITests;
+			sourceTree = "<group>";
+		};
+		1C4D37268F45D593E9159F32 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0BD31041C80EEF55EA4557E7 /* CalliopeiaSample.app */,
+				E0AE52D1E105974B272E2583 /* CalliopeiaSampleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5A73E2628C2BF5E64F09C185 /* CalliopeiaSample */ = {
+			isa = PBXGroup;
+			children = (
+				C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */,
+				48ACA0508594B61F6FC07DD3 /* ContentView.swift */,
+				8132687B4F04AD9CBA493B4D /* SampleModel.swift */,
+			);
+			path = CalliopeiaSample;
+			sourceTree = "<group>";
+		};
+		68919CAFEB81DA623950777D /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				9FF43D081D32C4C6F62F7E4B /* calliopeia-mobile-sdk */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		16471B9FD345D388FA19DFC2 /* CalliopeiaSampleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 433F9380FCC2B265CB3D2581 /* Build configuration list for PBXNativeTarget "CalliopeiaSampleUITests" */;
+			buildPhases = (
+				AE545CDA8A7EF33BDE6AAEA6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D5B6BE5E3420737EC5CEB366 /* PBXTargetDependency */,
+			);
+			name = CalliopeiaSampleUITests;
+			packageProductDependencies = (
+			);
+			productName = CalliopeiaSampleUITests;
+			productReference = E0AE52D1E105974B272E2583 /* CalliopeiaSampleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		EF0DCC0E590B74C6590F0969 /* CalliopeiaSample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F3D74DC6E59B21807FE45055 /* Build configuration list for PBXNativeTarget "CalliopeiaSample" */;
+			buildPhases = (
+				EC691D09450AF4C4739BAF66 /* Sources */,
+				98D4AC2369A18BA3B25AC531 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CalliopeiaSample;
+			packageProductDependencies = (
+				43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */,
+			);
+			productName = CalliopeiaSample;
+			productReference = 0BD31041C80EEF55EA4557E7 /* CalliopeiaSample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2537D6C8B74769F2F47CB327 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					16471B9FD345D388FA19DFC2 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = EF0DCC0E590B74C6590F0969;
+					};
+					EF0DCC0E590B74C6590F0969 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 3797A4BEDC0F3CAB14A22902 /* Build configuration list for PBXProject "CalliopeiaSample" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 045C2C8C7C629D582076CE77;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4F3B842D5B07CBAC1BAE9008 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1C4D37268F45D593E9159F32 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EF0DCC0E590B74C6590F0969 /* CalliopeiaSample */,
+				16471B9FD345D388FA19DFC2 /* CalliopeiaSampleUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AE545CDA8A7EF33BDE6AAEA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09298F609B8C5F6D19B2A6A1 /* CalliopeiaSampleUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC691D09450AF4C4739BAF66 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E5733E96697C7B5760D8591 /* CalliopeiaSampleApp.swift in Sources */,
+				9711185781E5A037C56776DC /* ContentView.swift in Sources */,
+				5F6BAB86F5E0B7834D511878 /* SampleModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D5B6BE5E3420737EC5CEB366 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EF0DCC0E590B74C6590F0969 /* CalliopeiaSample */;
+			targetProxy = DB15B301A72654E723E6644F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5760CE1689D3D53F94A35C0B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Calliopeia Sample";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Calliopeiaへ送信する音声を録音します。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.funnelsphere.calliopeia.sample;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6E5F853CFF54DC6880894183 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.funnelsphere.calliopeia.sample.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CalliopeiaSample;
+			};
+			name = Debug;
+		};
+		7FE052ADFA7D55AE3E438DF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		B8462B3AA7AB726BEA253B9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Calliopeia Sample";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Calliopeiaへ送信する音声を録音します。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.funnelsphere.calliopeia.sample;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B98F75466FCFFB6E890FA41A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.funnelsphere.calliopeia.sample.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CalliopeiaSample;
+			};
+			name = Release;
+		};
+		B9BD9EBFCE08DF3027772AA0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3797A4BEDC0F3CAB14A22902 /* Build configuration list for PBXProject "CalliopeiaSample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9BD9EBFCE08DF3027772AA0 /* Debug */,
+				7FE052ADFA7D55AE3E438DF9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		433F9380FCC2B265CB3D2581 /* Build configuration list for PBXNativeTarget "CalliopeiaSampleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E5F853CFF54DC6880894183 /* Debug */,
+				B98F75466FCFFB6E890FA41A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F3D74DC6E59B21807FE45055 /* Build configuration list for PBXNativeTarget "CalliopeiaSample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8462B3AA7AB726BEA253B9F /* Debug */,
+				5760CE1689D3D53F94A35C0B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		4F3B842D5B07CBAC1BAE9008 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CalliopeiaSDK;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 2537D6C8B74769F2F47CB327 /* Project object */;
+}

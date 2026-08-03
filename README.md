@@ -162,6 +162,30 @@ lifecycleScope.launch {
 Webhookと結果取得でそのまま返るため、自社レコードとの対応付けに利用できます。
 SDKはバックエンドと同じサイズ、深さ、プロパティ数、キー長の上限を送信前に検証します。
 
+## サンプルアプリ
+
+公開リポジトリ内に、録音からジョブ登録、状態取得までを確認できる参照実装があります。
+
+- [iOS SwiftUI sample](samples/ios/README.md): Xcodeで
+  `samples/ios/CalliopeiaSample.xcodeproj`を開きます。
+- [Android sample](android/sample-app/README.md): Android Studioで`android`を開き、
+  `sample-app`を実行します。
+
+サンプルへ入力した認証情報は端末へ永続化しません。本番アプリでは、ログイン済みの
+ホストアプリから短期JWTを返すcredential providerへ置き換えてください。
+
+## 商用エッジランタイム
+
+独自DSP、Rustネイティブコア、モデル重みを含む商用ランタイムは、この公開SDKと
+分離して認証付きで配布します。公開SDKは単独で動作し、商用ランタイムを利用する
+契約では次の拡張点へ実装を注入します。
+
+- iOS: `AudioFrameInspecting`
+- Android: `AudioFrameInspector`
+
+この分離により、アプリの連携コードとサンプルはOSSのまま再利用でき、商用バイナリ、
+モデル、顧客別の利用権限は公開リポジトリへ含めずに更新できます。
+
 ## ビルドとテスト
 
 ```bash
