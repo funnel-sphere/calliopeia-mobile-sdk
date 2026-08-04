@@ -25,6 +25,7 @@ public final class HighFidelityRecorder: @unchecked Sendable {
     public enum RecorderError: Error {
         case alreadyRecording
         case unsupportedInputFormat
+        case unsupportedSampleRate(expected: Int, actual: Int)
         case bufferCopyFailed
         case writeFailed(Error)
     }
@@ -56,6 +57,35 @@ public final class HighFidelityRecorder: @unchecked Sendable {
         mode: CaptureMode = .rawMaster,
         onFrame: FrameHandler? = nil
     ) throws -> CaptureFormat {
+        try start(
+            writingRawMasterTo: outputURL,
+            mode: mode,
+            requiredSampleRate: nil,
+            onFrame: onFrame
+        )
+    }
+
+    @discardableResult
+    public func start(
+        writingRawMasterTo outputURL: URL,
+        mode: CaptureMode = .rawMaster,
+        requiredSampleRate: Int,
+        onFrame: FrameHandler? = nil
+    ) throws -> CaptureFormat {
+        try start(
+            writingRawMasterTo: outputURL,
+            mode: mode,
+            requiredSampleRate: Optional(requiredSampleRate),
+            onFrame: onFrame
+        )
+    }
+
+    private func start(
+        writingRawMasterTo outputURL: URL,
+        mode: CaptureMode,
+        requiredSampleRate: Int?,
+        onFrame: FrameHandler?
+    ) throws -> CaptureFormat {
         stateLock.lock()
         defer { stateLock.unlock() }
         guard !recording else { throw RecorderError.alreadyRecording }
@@ -81,6 +111,13 @@ public final class HighFidelityRecorder: @unchecked Sendable {
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0, format.floatChannelDataCompatible else {
             throw RecorderError.unsupportedInputFormat
+        }
+        if let requiredSampleRate, Int(format.sampleRate.rounded()) != requiredSampleRate {
+            try? session.setActive(false, options: .notifyOthersOnDeactivation)
+            throw RecorderError.unsupportedSampleRate(
+                expected: requiredSampleRate,
+                actual: Int(format.sampleRate.rounded())
+            )
         }
 
         audioFile = try AVAudioFile(
@@ -150,35 +187,45 @@ public final class HighFidelityRecorder: @unchecked Sendable {
         onFrame: FrameHandler?
     ) {
         let frameLength = Int(buffer.frameLength)
-        guard frameLength > 0, let channelData = buffer.floatChannelData else { return }
-
-        var mono = Array(repeating: Float(0), count: frameLength)
-        for channel in 0..<Int(format.channelCount) {
-            for frame in 0..<frameLength {
-                mono[frame] += channelData[channel][frame] / Float(format.channelCount)
-            }
-        }
-
+        guard frameLength > 0 else { return }
         let timestamp = capturedFrameCount * 1_000 / Int64(format.sampleRate)
         capturedFrameCount += Int64(frameLength)
-        let snapshot = inspector?.inspect(samples: mono)
-        onFrame?(AudioFrame(samples: mono, sampleRate: Int(format.sampleRate), timestampMilliseconds: timestamp), snapshot)
 
         guard let copy = Self.copy(buffer: buffer) else {
-            writeErrorLock.withLock {
-                asynchronousWriteError = RecorderError.bufferCopyFailed
+            fileQueue.async { [weak self] in
+                self?.writeErrorLock.withLock {
+                    self?.asynchronousWriteError = RecorderError.bufferCopyFailed
+                }
             }
             return
         }
         fileQueue.async { [weak self] in
-            guard let self, let audioFile = self.audioFile else { return }
+            guard let self else { return }
             do {
-                try audioFile.write(from: copy)
+                if let audioFile = self.audioFile {
+                    try audioFile.write(from: copy)
+                }
             } catch {
                 self.writeErrorLock.withLock {
                     self.asynchronousWriteError = error
                 }
             }
+            guard let channelData = copy.floatChannelData else { return }
+            var mono = Array(repeating: Float(0), count: frameLength)
+            for channel in 0..<Int(format.channelCount) {
+                for frame in 0..<frameLength {
+                    mono[frame] += channelData[channel][frame] / Float(format.channelCount)
+                }
+            }
+            let snapshot = self.inspector?.inspect(samples: mono)
+            onFrame?(
+                AudioFrame(
+                    samples: mono,
+                    sampleRate: Int(format.sampleRate),
+                    timestampMilliseconds: timestamp
+                ),
+                snapshot
+            )
         }
     }
 

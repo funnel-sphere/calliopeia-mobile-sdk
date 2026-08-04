@@ -22,7 +22,7 @@ let package = Package(
             dependencies: ["CalliopeiaAudioContracts"],
             path: "ios/Sources/CalliopeiaAudioCapture",
             linkerSettings: [
-                .linkedFramework("AVFoundation", .when(platforms: [.iOS])),
+                .linkedFramework("AVFoundation", .when(platforms: [.iOS, .macOS])),
                 .linkedFramework("AudioToolbox", .when(platforms: [.iOS])),
             ]
         ),
@@ -36,7 +36,11 @@ let package = Package(
         ),
         .testTarget(
             name: "CalliopeiaSDKTests",
-            dependencies: ["CalliopeiaSDK"],
+            dependencies: [
+                "CalliopeiaSDK",
+                "CalliopeiaAudioCapture",
+                "CalliopeiaAudioContracts",
+            ],
             path: "ios/Tests/CalliopeiaSDKTests"
         ),
     ]

@@ -85,11 +85,16 @@ public struct CaptureFormat: Codable, Equatable, Sendable {
 }
 
 public protocol StreamingAudioEnhancer: AnyObject {
+    var identifier: String { get }
     var requiredSampleRate: Int { get }
     var preferredFrameSize: Int { get }
     func process(samples: [Float], sampleRate: Int) throws -> [Float]
     func flush() throws -> [Float]
     func reset()
+}
+
+public extension StreamingAudioEnhancer {
+    var identifier: String { String(reflecting: type(of: self)) }
 }
 
 public enum AudioEnhancerError: Error, Equatable {

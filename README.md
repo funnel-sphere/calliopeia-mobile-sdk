@@ -94,6 +94,36 @@ let (_, submission) = try await recorder.stopAndSubmit(request: request)
 let result = try await api.getJob(id: submission.job.id)
 ```
 
+### iOS paired recording
+
+`StreamingAudioEnhancer`を注入すると、原音masterと同じsample rate・sample-frame長の
+mono補正音声、および区間ごとのenhanced/fallback内訳を含むJSON manifestを保存できます。
+原音masterは常に独立して記録され、補正処理のoverload、model error、不正な長さ、
+非finite出力は、該当区間の原音monoへfallbackします。
+manifestには`schemaVersion`とenhancerの`identifier`も含まれます。一時処理データは
+フレームごとのファイルではなく、録音ごとに固定2ファイルへ記録されます。
+
+```swift
+let recorder = CalliopeiaRecordingClient(
+    apiClient: api,
+    enhancer: commercialStreamingEnhancer,
+    pairedProcessorConfiguration: .init(maximumPendingFrames: 4)
+)
+
+try recorder.startPairedRecording(baseFileName: "visit-123")
+let paired = try recorder.stopPairedRecording()
+
+// visit-123-raw.wav
+print(paired.rawAudio.fileURL)
+// visit-123-enhanced.wav
+print(paired.enhancedFileURL)
+// visit-123-manifest.json
+print(paired.manifestURL)
+```
+
+enhancerの`requiredSampleRate`と端末の実capture sample rateが一致しない場合は、
+SDK内で暗黙resampleせず開始を失敗させます。
+
 同じCalliopeia Cognito User Poolへログインするアプリは
 `graphQLAuthorization: .cognitoUserPools`を指定します。外部テナントが独自JWTまたは
 Calliopeia APIキーを使う場合は既定の`.apiKey`のままにし、AppSync公開キーと外部
@@ -188,6 +218,7 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 契約では次の拡張点へ実装を注入します。
 
 - iOS: `AudioFrameInspecting`
+- iOS audio enhancement: `StreamingAudioEnhancer`
 - Android: `AudioFrameInspector`
 
 この分離により、アプリの連携コードとサンプルはOSSのまま再利用でき、商用バイナリ、
