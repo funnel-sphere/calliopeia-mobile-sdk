@@ -5,6 +5,34 @@ import XCTest
 @testable import CalliopeiaAudioContracts
 
 final class PairedRecordingProcessorTests: XCTestCase {
+    func testOutputSafetyDistinguishesSilentInputAndAttenuatedOutput() {
+        let configuration = PairedOutputSafetyConfiguration()
+        XCTAssertEqual(
+            PairedRecordingProcessor.assessOutputSafety(
+                inputSamples: [0.1, -0.2, 0.3, -0.4],
+                outputSamples: [0, 0, 0, 0],
+                configuration: configuration
+            ),
+            .attenuated
+        )
+        XCTAssertEqual(
+            PairedRecordingProcessor.assessOutputSafety(
+                inputSamples: [0.1, -0.2, 0.3, -0.4],
+                outputSamples: [0.05, -0.1, 0.15, -0.2],
+                configuration: configuration
+            ),
+            .safe
+        )
+        XCTAssertEqual(
+            PairedRecordingProcessor.assessOutputSafety(
+                inputSamples: [0.0001, -0.0002, 0.0001, -0.0001],
+                outputSamples: [0, 0, 0, 0],
+                configuration: configuration
+            ),
+            .inputSilent
+        )
+    }
+
     func testSyntheticWAVReconstructionPreservesAlignmentAndCoalescesSpans() throws {
         let workspace = try TemporaryWorkspace()
         let raw = workspace.url.appendingPathComponent("raw.wav")
@@ -139,6 +167,46 @@ final class PairedRecordingProcessorTests: XCTestCase {
         XCTAssertEqual(artifacts.manifest.malformedOutputCount, 2)
         XCTAssertEqual(artifacts.manifest.samplesByDisposition["modelErrorFallback"], 2)
         XCTAssertEqual(artifacts.manifest.samplesByDisposition["malformedOutputFallback"], 4)
+    }
+
+    func testExtremelyAttenuatedCandidateFallsBackToRawAndRecordsDisposition() throws {
+        let workspace = try TemporaryWorkspace()
+        let raw = workspace.url.appendingPathComponent("raw.wav")
+        let enhanced = workspace.url.appendingPathComponent("enhanced.wav")
+        let manifest = workspace.url.appendingPathComponent("manifest.json")
+        let samples: [Float] = [0.2, -0.1, 0.3, -0.4]
+        try writeWAV(samples: samples, channels: 1, sampleRate: 16_000, to: raw)
+
+        let processor = PairedRecordingProcessor(
+            enhancer: TransformEnhancer { _ in [0, 0, 0, 0] }
+        )
+        try processor.start(
+            sampleRate: 16_000,
+            spoolDirectory: workspace.url.appendingPathComponent("spool")
+        )
+        try processor.append(frame(samples))
+
+        let artifacts = try processor.stopAndFinalize(
+            rawFileURL: raw,
+            enhancedFileURL: enhanced,
+            manifestURL: manifest
+        )
+
+        assertFloatArraysEqual(try readMonoWAV(enhanced), samples)
+        XCTAssertEqual(
+            artifacts.manifest.spans,
+            [
+                .init(
+                    startSample: 0,
+                    sampleCount: Int64(samples.count),
+                    disposition: .outputSafetyFallback
+                ),
+            ]
+        )
+        XCTAssertEqual(
+            artifacts.manifest.samplesByDisposition["outputSafetyFallback"],
+            Int64(samples.count)
+        )
     }
 
     func testModelFailureResetsStateBeforeTheNextAcceptedFrame() throws {

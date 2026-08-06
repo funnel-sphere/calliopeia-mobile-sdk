@@ -99,7 +99,9 @@ let result = try await api.getJob(id: submission.job.id)
 `StreamingAudioEnhancer`を注入すると、原音masterと同じsample rate・sample-frame長の
 mono補正音声、および区間ごとのenhanced/fallback内訳を含むJSON manifestを保存できます。
 原音masterは常に独立して記録され、補正処理のoverload、model error、不正な長さ、
-非finite出力は、該当区間の原音monoへfallbackします。
+非finite出力、原音に対して極端に減衰した補正出力は、該当区間の原音monoへfallback
+します。出力レベル判定は、意味のある入力RMS、補正出力の絶対RMS、入力に対する
+RMS/peak比を使い、無音に近い入力を不要に増幅しません。
 manifestには`schemaVersion`とenhancerの`identifier`も含まれます。一時処理データは
 フレームごとのファイルではなく、録音ごとに固定2ファイルへ記録されます。
 

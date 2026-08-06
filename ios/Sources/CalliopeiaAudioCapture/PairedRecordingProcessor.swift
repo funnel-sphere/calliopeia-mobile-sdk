@@ -6,12 +6,55 @@ import AVFoundation
 import CalliopeiaAudioContracts
 #endif
 
+public struct PairedOutputSafetyConfiguration: Equatable, Sendable {
+    public var minimumMeaningfulInputRMS: Float
+    public var minimumOutputRMS: Float
+    public var minimumOutputToInputRMSRatio: Float
+
+    public init(
+        minimumMeaningfulInputRMS: Float = 0.005,
+        minimumOutputRMS: Float = 0.0005,
+        minimumOutputToInputRMSRatio: Float = 0.08
+    ) {
+        self.minimumMeaningfulInputRMS = minimumMeaningfulInputRMS
+        self.minimumOutputRMS = minimumOutputRMS
+        self.minimumOutputToInputRMSRatio = minimumOutputToInputRMSRatio
+    }
+
+    fileprivate var isValid: Bool {
+        minimumMeaningfulInputRMS.isFinite &&
+            minimumMeaningfulInputRMS >= 0 &&
+            minimumOutputRMS.isFinite &&
+            minimumOutputRMS >= 0 &&
+            minimumOutputToInputRMSRatio.isFinite &&
+            minimumOutputToInputRMSRatio > 0 &&
+            minimumOutputToInputRMSRatio <= 1
+    }
+}
+
+public enum PairedOutputSafetyResult: String, Codable, Sendable {
+    case safe
+    case inputSilent
+    case attenuated
+    case invalid
+
+    public var acceptsOutput: Bool {
+        switch self {
+        case .safe, .inputSilent:
+            true
+        case .attenuated, .invalid:
+            false
+        }
+    }
+}
+
 public enum PairedSampleDisposition: String, Codable, Sendable {
     case enhanced
     case overloadFallback
     case modelErrorFallback
     case malformedOutputFallback
     case stoppedFallback
+    case outputSafetyFallback
 }
 
 public struct PairedRecordingSpan: Codable, Equatable, Sendable {
@@ -101,9 +144,14 @@ public struct PairedRecordingArtifacts: Sendable {
 public final class PairedRecordingProcessor: @unchecked Sendable {
     public struct Configuration: Sendable {
         public var maximumPendingFrames: Int
+        public var outputSafety: PairedOutputSafetyConfiguration
 
-        public init(maximumPendingFrames: Int = 4) {
+        public init(
+            maximumPendingFrames: Int = 4,
+            outputSafety: PairedOutputSafetyConfiguration = .init()
+        ) {
             self.maximumPendingFrames = maximumPendingFrames
+            self.outputSafety = outputSafety
         }
     }
 
@@ -119,6 +167,7 @@ public final class PairedRecordingProcessor: @unchecked Sendable {
         case spoolUnavailable
         case rawMasterUnavailable
         case rawMasterFormatMismatch
+        case invalidOutputSafetyConfiguration
     }
 
     private let enhancer: any StreamingAudioEnhancer
@@ -161,9 +210,48 @@ public final class PairedRecordingProcessor: @unchecked Sendable {
         )
     }
 
+    public static func assessOutputSafety(
+        inputSamples: [Float],
+        outputSamples: [Float],
+        configuration: PairedOutputSafetyConfiguration = .init()
+    ) -> PairedOutputSafetyResult {
+        guard configuration.isValid,
+              !inputSamples.isEmpty,
+              inputSamples.count == outputSamples.count,
+              inputSamples.allSatisfy(\.isFinite),
+              outputSamples.allSatisfy(\.isFinite) else {
+            return .invalid
+        }
+
+        let inputRMS = rms(of: inputSamples)
+        guard inputRMS >= Double(configuration.minimumMeaningfulInputRMS) else {
+            return .inputSilent
+        }
+
+        let outputRMS = rms(of: outputSamples)
+        if outputRMS <= Double(configuration.minimumOutputRMS) {
+            return .attenuated
+        }
+
+        let rmsRatio = outputRMS / inputRMS
+        guard rmsRatio < Double(configuration.minimumOutputToInputRMSRatio) else {
+            return .safe
+        }
+
+        let inputPeak = peak(of: inputSamples)
+        let outputPeak = peak(of: outputSamples)
+        let peakRatio = inputPeak > 0 ? outputPeak / inputPeak : 0
+        return peakRatio < Double(configuration.minimumOutputToInputRMSRatio)
+            ? .attenuated
+            : .safe
+    }
+
     public func start(sampleRate: Int, spoolDirectory: URL) throws {
         guard configuration.maximumPendingFrames > 0 else {
             throw ProcessorError.invalidMaximumPendingFrames
+        }
+        guard configuration.outputSafety.isValid else {
+            throw ProcessorError.invalidOutputSafetyConfiguration
         }
         guard enhancer.preferredFrameSize > 0 else {
             throw ProcessorError.invalidEnhancerFrameSize
@@ -362,8 +450,24 @@ public final class PairedRecordingProcessor: @unchecked Sendable {
                     enhancerNeedsReset = true
                 }
             } else {
-                disposition = .enhanced
-                enhancedSamples = output
+                switch Self.assessOutputSafety(
+                    inputSamples: pending.samples,
+                    outputSamples: output,
+                    configuration: configuration.outputSafety
+                ) {
+                case .safe, .inputSilent:
+                    disposition = .enhanced
+                    enhancedSamples = output
+                case .attenuated:
+                    disposition = .outputSafetyFallback
+                    stateLock.withLock { enhancerNeedsReset = true }
+                case .invalid:
+                    disposition = .malformedOutputFallback
+                    stateLock.withLock {
+                        malformedOutputCount += 1
+                        enhancerNeedsReset = true
+                    }
+                }
             }
         } catch {
             disposition = .modelErrorFallback
@@ -628,6 +732,18 @@ public final class PairedRecordingProcessor: @unchecked Sendable {
         samples.withUnsafeBufferPointer { Data(buffer: $0) }
     }
 
+    private static func rms(of samples: [Float]) -> Double {
+        let sum = samples.reduce(into: 0.0) { partialResult, sample in
+            let value = Double(sample)
+            partialResult += value * value
+        }
+        return (sum / Double(samples.count)).squareRoot()
+    }
+
+    private static func peak(of samples: [Float]) -> Double {
+        samples.reduce(0) { max($0, abs(Double($1))) }
+    }
+
     private static let recordFileName = "patch-records.bin"
     private static let audioFileName = "enhanced-samples.f32"
     private static let patchRecordSize = 32
@@ -808,6 +924,7 @@ private extension PairedSampleDisposition {
         .modelErrorFallback,
         .malformedOutputFallback,
         .stoppedFallback,
+        .outputSafetyFallback,
     ]
 
     var binaryCode: UInt8 {
@@ -817,6 +934,7 @@ private extension PairedSampleDisposition {
         case .modelErrorFallback: 2
         case .malformedOutputFallback: 3
         case .stoppedFallback: 4
+        case .outputSafetyFallback: 5
         }
     }
 
@@ -827,6 +945,7 @@ private extension PairedSampleDisposition {
         case 2: self = .modelErrorFallback
         case 3: self = .malformedOutputFallback
         case 4: self = .stoppedFallback
+        case 5: self = .outputSafetyFallback
         default: return nil
         }
     }
