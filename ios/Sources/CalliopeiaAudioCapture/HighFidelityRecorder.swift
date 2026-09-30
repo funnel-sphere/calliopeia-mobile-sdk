@@ -10,15 +10,18 @@ public final class HighFidelityRecorder: @unchecked Sendable {
         public var preferredSampleRate: Double
         public var preferredBufferDuration: TimeInterval
         public var frameBufferSize: AVAudioFrameCount
+        public var preferDirectionalPickup: Bool
 
         public init(
             preferredSampleRate: Double = 48_000,
             preferredBufferDuration: TimeInterval = 0.02,
-            frameBufferSize: AVAudioFrameCount = 960
+            frameBufferSize: AVAudioFrameCount = 960,
+            preferDirectionalPickup: Bool = false
         ) {
             self.preferredSampleRate = preferredSampleRate
             self.preferredBufferDuration = preferredBufferDuration
             self.frameBufferSize = frameBufferSize
+            self.preferDirectionalPickup = preferDirectionalPickup
         }
     }
 
@@ -31,6 +34,8 @@ public final class HighFidelityRecorder: @unchecked Sendable {
     }
 
     public typealias FrameHandler = @Sendable (AudioFrame, QualitySnapshot?) -> Void
+
+    public private(set) var captureRouteReport: CaptureRouteReport = .unavailable
 
     private let configuration: Configuration
     private let inspector: (any AudioFrameInspecting)?
@@ -105,6 +110,9 @@ public final class HighFidelityRecorder: @unchecked Sendable {
         try session.setPreferredSampleRate(configuration.preferredSampleRate)
         try session.setPreferredIOBufferDuration(configuration.preferredBufferDuration)
         try session.setActive(true)
+
+        captureRouteReport = mode == .rawMaster && configuration.preferDirectionalPickup
+            ? CaptureRouteOptimizer.applyDirectionalPickup(session: session) : .unavailable
 
         let input = engine.inputNode
         try input.setVoiceProcessingEnabled(mode == .systemVoice)

@@ -11,6 +11,10 @@ let package = Package(
         .library(name: "CalliopeiaAudioContracts", targets: ["CalliopeiaAudioContracts"]),
         .library(name: "CalliopeiaAudioCapture", targets: ["CalliopeiaAudioCapture"]),
         .library(name: "CalliopeiaSDK", targets: ["CalliopeiaSDK"]),
+        .library(name: "CalliopeiaAuth", targets: ["CalliopeiaAuth"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/aws-amplify/amplify-swift", exact: "2.58.1"),
     ],
     targets: [
         .target(
@@ -33,6 +37,16 @@ let package = Package(
             linkerSettings: [
                 .linkedFramework("AVFoundation", .when(platforms: [.iOS])),
             ]
+        ),
+        .target(
+            name: "CalliopeiaAuth",
+            dependencies: [
+                "CalliopeiaSDK",
+                .product(name: "Amplify", package: "amplify-swift"),
+                .product(name: "AWSCognitoAuthPlugin", package: "amplify-swift"),
+                .product(name: "AWSPluginsCore", package: "amplify-swift"),
+            ],
+            path: "ios/Sources/CalliopeiaAuth"
         ),
         .testTarget(
             name: "CalliopeiaSDKTests",

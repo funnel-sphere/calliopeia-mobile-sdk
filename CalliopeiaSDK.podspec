@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name = 'CalliopeiaSDK'
-  spec.version = '0.1.0'
+  spec.version = '0.3.0'
   spec.summary = 'High-fidelity recording and Calliopeia audio-analysis API client for iOS.'
   spec.description = <<-DESC
     CalliopeiaSDK records an unprocessed audio master, submits it to Calliopeia,
@@ -15,6 +15,9 @@ Pod::Spec.new do |spec|
   }
   spec.ios.deployment_target = '15.0'
   spec.swift_version = '5.9'
-  spec.source_files = 'ios/Sources/**/*.swift'
+  # Cognito integration is the optional SPM CalliopeiaAuth product.
+  spec.source_files = 'ios/Sources/CalliopeiaAudioContracts/**/*.swift',
+                      'ios/Sources/CalliopeiaAudioCapture/**/*.swift',
+                      'ios/Sources/CalliopeiaSDK/**/*.swift'
   spec.frameworks = 'AVFoundation', 'AudioToolbox'
 end

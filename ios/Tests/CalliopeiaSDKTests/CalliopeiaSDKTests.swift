@@ -200,6 +200,51 @@ final class CalliopeiaSDKTests: XCTestCase {
         XCTAssertEqual(response.job.passthrough, .object(["crm_id": .string("C-123")]))
     }
 
+    func testQualityBatchOptionsIncludeExplicitOff() async throws {
+        var invoked = false
+        URLProtocolStub.handler = { request in
+            let body = try JSONSerialization.jsonObject(with: request.bodyData()) as! [String: Any]
+            let variables = body["variables"] as! [String: Any]
+            XCTAssertEqual(variables["generateIndividualKartes"] as? Bool, false)
+            XCTAssertEqual(variables["bgmSeparation"] as? String, "off")
+            XCTAssertEqual(variables["processingProfileId"] as? String, "quality_batch")
+            invoked = true
+            return Self.jsonResponse(url: request.url!, body: #"{"data":{"externalInvokeAudioJob":{"success":true,"job":{"id":"new-job","status":"QUEUED"}}}}"#)
+        }
+        let client = CalliopeiaAPIClient(configuration: .init(graphQLEndpoint: URL(string: "https://graphql.example.com")!, appSyncAPIKey: "app-key"), credentialProvider: StaticCalliopeiaCredentialProvider(.init(value: "tenant-key", type: .apiKey)), session: Self.stubSession())
+        let ticket = CalliopeiaUploadTicket(objectKey: "audio", uploadURL: URL(string: "https://upload.example.com")!, method: "PUT", contentType: "audio/mp4", expiresAt: nil)
+        _ = try await client.invokeAudioJob(ticket: ticket, fileName: "audio.m4a", fileSizeBytes: 10, audioSeconds: 1, request: .qualityBatch(idempotencyKey: "reusable-id"))
+        XCTAssertTrue(invoked)
+    }
+
+    func testQuestionTransportDecodesCitationAndPreservesZeroSection() async throws {
+        URLProtocolStub.handler = { request in
+            let body = try JSONSerialization.jsonObject(with: request.bodyData()) as! [String: Any]
+            let variables = body["variables"] as! [String: Any]
+            XCTAssertEqual(variables["sectionIndex"] as? Int, 0)
+            XCTAssertEqual(variables["parentQuestionId"] as? String, "parent")
+            XCTAssertNil(variables["generateIndividualKartes"])
+            let question: [String: Any] = ["questionId":"q1", "jobId":"job", "question":"duration?", "status":"COMPLETED", "answer":"90 minutes", "citations":[["sourceId":3, "startSeconds":270, "endSeconds":300, "quote":"90 minutes"]]]
+            let json = String(data: try JSONSerialization.data(withJSONObject: question), encoding: .utf8)!
+            let response: [String: Any] = ["data":["externalAskJobQuestion":["success":true,"questionJson":json]]]
+            return Self.jsonResponse(url: request.url!, body: String(data: try JSONSerialization.data(withJSONObject: response), encoding: .utf8)!)
+        }
+        let client = CalliopeiaAPIClient(configuration: .init(graphQLEndpoint: URL(string: "https://graphql.example.com")!, appSyncAPIKey: "app-key"), credentialProvider: StaticCalliopeiaCredentialProvider(.init(value: "tenant-key", type: .apiKey)), session: Self.stubSession())
+        let result = try await client.askQuestion(jobID: "job", question: "duration?", requestID: "same-request", parentQuestionID: "parent", sectionIndex: 0)
+        XCTAssertEqual(result.question?.citations?.first?.startSeconds, 270)
+        XCTAssertEqual(result.question?.citations?.first?.sourceId, "3")
+        XCTAssertEqual(result.question?.answer, "90 minutes")
+    }
+
+    func testFormattingRequiresExplicitConsentBeforeNetwork() async throws {
+        URLProtocolStub.handler = { _ in XCTFail("must not send"); throw URLError(.badURL) }
+        let client = CalliopeiaAPIClient(configuration: .init(graphQLEndpoint: URL(string: "https://graphql.example.com")!, appSyncAPIKey: "key"), credentialProvider: StaticCalliopeiaCredentialProvider(.init(value: "credential")), session: Self.stubSession())
+        do {
+            _ = try await client.purchaseFormattedTranscript(jobID: "job", quoteToken: "quote", acceptCharge: false)
+            XCTFail("must reject")
+        } catch CalliopeiaSDKError.invalidRequest { }
+    }
+
     private static func stubSession() -> URLSession {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [URLProtocolStub.self]

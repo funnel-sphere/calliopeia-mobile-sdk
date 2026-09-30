@@ -2,7 +2,7 @@ import Foundation
 
 public actor CalliopeiaAPIClient {
     private let configuration: CalliopeiaAPIConfiguration
-    private let credentialProvider: any CalliopeiaCredentialProvider
+    let credentialProvider: any CalliopeiaCredentialProvider
     private let session: URLSession
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -57,8 +57,8 @@ public actor CalliopeiaAPIClient {
         audioSeconds: Double?,
         request jobRequest: CalliopeiaAudioJobRequest
     ) async throws -> CalliopeiaJobSubmission {
-        guard fileSizeBytes > 0, fileSizeBytes <= 2 * 1_024 * 1_024 * 1_024 else {
-            throw CalliopeiaSDKError.invalidRequest("audio file must be between 1 byte and 2 GiB")
+        guard fileSizeBytes > 0, fileSizeBytes <= Int(Int32.max) else {
+            throw CalliopeiaSDKError.invalidRequest("audio file must fit the GraphQL signed 32-bit size field")
         }
         guard !jobRequest.idempotencyKey.isEmpty, jobRequest.idempotencyKey.count <= 128 else {
             throw CalliopeiaSDKError.invalidRequest("idempotencyKey must be 1 to 128 characters")
@@ -85,6 +85,8 @@ public actor CalliopeiaAPIClient {
             "idempotencyKey": .string(jobRequest.idempotencyKey),
         ]
         variables.set(audioSeconds.map(JSONValue.number), for: "audioSeconds")
+        variables.set(jobRequest.bgmSeparation.map { .string($0.rawValue) }, for: "bgmSeparation")
+        variables.set(jobRequest.generateIndividualKartes.map(JSONValue.bool), for: "generateIndividualKartes")
         variables.set(jobRequest.processingProfileID.map(JSONValue.string), for: "processingProfileId")
         variables.set(jobRequest.extractionEffort.map { .string($0.rawValue) }, for: "extractionEffort")
         variables.set(jobRequest.auditMode.map { .string($0.rawValue) }, for: "transcriptSupportAuditMode")
@@ -194,7 +196,7 @@ public actor CalliopeiaAPIClient {
         return try decoder.decode(CalliopeiaPullJobResponse.self, from: data)
     }
 
-    private func graphQL<Payload: Decodable>(
+    func graphQL<Payload: Decodable>(
         query: String,
         variables: [String: JSONValue],
         credential: CalliopeiaCredential
@@ -312,6 +314,7 @@ private extension CalliopeiaAPIClient {
       $credential: String!, $authType: String!, $objectKey: String!, $fileName: String!,
       $contentType: String, $fileSizeBytes: Int, $audioSeconds: Float,
       $processingProfileId: String, $extractionEffort: String,
+      $bgmSeparation: String, $generateIndividualKartes: Boolean,
       $transcriptSupportAuditMode: String, $auditEffort: String,
       $auditStrategy: String, $auditBatchSize: Int, $promptText: String,
       $promptTemplateId: String, $promptTitle: String, $responseMode: String,
@@ -323,6 +326,7 @@ private extension CalliopeiaAPIClient {
         credential: $credential, authType: $authType, objectKey: $objectKey,
         fileName: $fileName, contentType: $contentType, fileSizeBytes: $fileSizeBytes,
         audioSeconds: $audioSeconds, processingProfileId: $processingProfileId,
+        bgmSeparation: $bgmSeparation, generateIndividualKartes: $generateIndividualKartes,
         extractionEffort: $extractionEffort,
         transcriptSupportAuditMode: $transcriptSupportAuditMode,
         auditEffort: $auditEffort, auditStrategy: $auditStrategy,
@@ -349,7 +353,7 @@ private extension CalliopeiaAPIClient {
         error
         job {
           id status operation inputKind fileName audioSeconds responseText responseJson
-          extractionEffort transcriptSupportAuditMode auditEffort auditStrategy auditBatchSize
+          generateIndividualKartes extractionEffort transcriptSupportAuditMode auditEffort auditStrategy auditBatchSize
           transcriptSupportAuditState transcriptSupportAuditJson deliveryBlockedReason errorMessage
           costUsd costJpy createdAt updatedAt completedAt externalShopId externalCustomerId
           externalKarteId externalSummaryId externalPassthrough

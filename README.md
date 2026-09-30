@@ -6,7 +6,7 @@ Calliopeiaへ高品質な原音を録音・送信するためのiOS/Android向�
 OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパススルー情報、
 品質検査の拡張インターフェースを提供します。
 
-このリポジトリには、Calliopeia本体、独自DSP実装、モデル重み、実データ、
+このリポジトリには、Calliopeia本体、ノイズ除去モデル、モデル重み、実データ、
 認証情報、プロプライエタリなエッジ処理バイナリは含みません。
 
 ## 公開範囲
@@ -27,7 +27,7 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 
 ## iOS (Swift Package Manager)
 
-XcodeのPackage Dependenciesへ次を追加し、`0.1.1`以降を指定します。
+XcodeのPackage Dependenciesへ次を追加し、`0.3.0`以降を指定します。
 
 ```text
 https://github.com/funnel-sphere/calliopeia-mobile-sdk
@@ -38,7 +38,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```swift
 .package(
     url: "https://github.com/funnel-sphere/calliopeia-mobile-sdk.git",
-    from: "0.1.1"
+    from: "0.3.0"
 )
 ```
 
@@ -49,7 +49,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```ruby
 pod 'CalliopeiaSDK',
     git: 'https://github.com/funnel-sphere/calliopeia-mobile-sdk.git',
-    tag: '0.1.1'
+    tag: '0.3.0'
 ```
 
 ```bash
@@ -57,6 +57,13 @@ pod install
 ```
 
 ## iOS API
+
+**新規iOS実装:** [Recorder互換の録音・ログイン・API](docs/recorder-capture.md)を参照してください。
+0.3.0では`CalliopeiaHighQualityRecorder`でノイズ除去モデルなしの原音M4A録音、
+`CalliopeiaSession`でメールOTPログインとトークン更新、APIクライアントで解析・
+書き起こし・追加質問を扱えます。個別カルテは既定Offです。新APIは0.3.0から利用できます。
+
+以下は従来の低レベルAPIで、ホストアプリが認証セッションを提供する場合の例です。
 
 ホストアプリの`Info.plist`には`NSMicrophoneUsageDescription`が必要です。
 
@@ -150,7 +157,7 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     implementation(
-        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.1.1"
+        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.3.0"
     )
 }
 ```

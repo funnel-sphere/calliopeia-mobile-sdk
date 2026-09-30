@@ -97,8 +97,14 @@ public enum CalliopeiaAuditStrategy: String, Codable, Sendable {
     case atomicBatch = "ATOMIC_BATCH"
 }
 
+public enum CalliopeiaBgmSeparation: String, Codable, Sendable {
+    case on, off
+}
+
 public struct CalliopeiaAudioJobRequest: Sendable {
     public var processingProfileID: String?
+    public var bgmSeparation: CalliopeiaBgmSeparation?
+    public var generateIndividualKartes: Bool?
     public var extractionEffort: CalliopeiaExtractionEffort?
     public var auditMode: CalliopeiaAuditMode?
     public var auditEffort: CalliopeiaAuditEffort?
@@ -121,6 +127,8 @@ public struct CalliopeiaAudioJobRequest: Sendable {
     public init(
         idempotencyKey: String = UUID().uuidString,
         processingProfileID: String? = nil,
+        bgmSeparation: CalliopeiaBgmSeparation? = nil,
+        generateIndividualKartes: Bool? = nil,
         extractionEffort: CalliopeiaExtractionEffort? = nil,
         auditMode: CalliopeiaAuditMode? = nil,
         auditEffort: CalliopeiaAuditEffort? = nil,
@@ -141,6 +149,8 @@ public struct CalliopeiaAudioJobRequest: Sendable {
     ) {
         self.idempotencyKey = idempotencyKey
         self.processingProfileID = processingProfileID
+        self.bgmSeparation = bgmSeparation
+        self.generateIndividualKartes = generateIndividualKartes
         self.extractionEffort = extractionEffort
         self.auditMode = auditMode
         self.auditEffort = auditEffort
@@ -216,6 +226,7 @@ public struct CalliopeiaJobSnapshot: Codable, Equatable, Sendable {
     public let audioSeconds: Double?
     public let responseText: String?
     public let responseJSON: JSONValue?
+    public let generateIndividualKartes: Bool?
     public let extractionEffort: String?
     public let auditMode: String?
     public let auditEffort: String?
@@ -238,6 +249,7 @@ public struct CalliopeiaJobSnapshot: Codable, Equatable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case id, status, operation, inputKind, fileName, audioSeconds, responseText
+        case generateIndividualKartes
         case extractionEffort, auditEffort, auditStrategy, auditBatchSize
         case deliveryBlockedReason, errorMessage, createdAt, updatedAt, completedAt
         case responseJSON = "responseJson"
@@ -311,5 +323,12 @@ extension CalliopeiaSDKError: LocalizedError {
         case .missingPullAPIBaseURL:
             "pullAPIBaseURL is required to retrieve job results"
         }
+    }
+}
+
+public extension CalliopeiaAudioJobRequest {
+    /// Current quality batch path, original audio, individual kartes Off.
+    static func qualityBatch(idempotencyKey: String = UUID().uuidString, generateIndividualKartes: Bool = false) -> Self {
+        .init(idempotencyKey: idempotencyKey, processingProfileID: "quality_batch", bgmSeparation: .off, generateIndividualKartes: generateIndividualKartes, extractionEffort: .maximum, auditMode: .off)
     }
 }
