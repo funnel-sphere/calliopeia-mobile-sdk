@@ -1,9 +1,14 @@
 # iOS recorder sample
 
-A small, Apache-2.0 licensed app built entirely on the public SDK. Requires Xcode
-with the iOS 17 SDK or newer, an iPhone for real microphone verification, and
-XcodeGen when adding connection configuration. The checked-in project builds
+A small, Apache-2.0 licensed app built entirely on the public SDK. Use Xcode with
+Swift 6.2 or newer for the currently resolved dependencies; the app targets iOS 17
+or newer. Real microphone verification requires an iPhone, and adding connection
+configuration requires XcodeGen. Verified locally with Xcode 27.0 (27A266a).
+The checked-in project builds
 without a service account; local recording remains available.
+
+Use the repository's `main` branch for this Recorder sample. It was added after
+the immutable SDK `0.3.0` tag and uses the APIs available in that release.
 
 ## Run
 
@@ -43,7 +48,8 @@ account with permission to submit audio jobs. This sample does not create accoun
    backend finishes; the result is shown below the job ID.
 
 Submission uses `.qualityBatch()` with BGM separation and individual kartes off.
-A retry after a network error reuses the request's idempotency key. It uses real
+A retry after an uncertain job response reuses both the uploaded ticket and the
+request's idempotency key. It uses real
 services and may consume your deployment's processing quota. A fresh recording
 gets a new request. The sample does not automatically purchase formatted output.
 
@@ -51,6 +57,8 @@ gets a new request. The sample does not automatically purchase formatted output.
 
 - `SampleModel.swift`: SDK configuration, OTP steps, account access, recording,
   explicit submission, and status/result retrieval.
+- `PendingAudioSubmission.swift`: retains the successful upload and request key
+  together so retrying a job request does not create a new upload object.
 - `ContentView.swift`: SwiftUI controls; interruption/background transitions stop
   and save recording. They do not upload it.
 - `project.yml`: local package dependencies on `CalliopeiaSDK` and `CalliopeiaAuth`.

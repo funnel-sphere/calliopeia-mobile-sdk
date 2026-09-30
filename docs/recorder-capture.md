@@ -12,6 +12,8 @@
 - `CalliopeiaAPIClient`: アップロード、解析投入、結果取得、書き起こし、追加質問。
 
 SPMの`CalliopeiaSDK`と、ログインを使う場合は`CalliopeiaAuth`を追加します。
+現在の依存関係を解決する場合はSwift 6.2以上を含むXcodeを使ってください。
+公開サンプルはiOS 17以上を対象とし、Xcode 27.0で実機確認しています。
 認証はRecorderと同じAmplify Swift **2.58.1**を使います。アプリのリソースに
 環境の`amplify_outputs.json`を入れ、Info.plistに`NSMicrophoneUsageDescription`を設定します。
 バックグラウンド録音を行うアプリはaudio background modeも設定してください。
@@ -30,10 +32,13 @@ let session = CalliopeiaSession()
 let api = session.makeAPI(environment: try CalliopeiaEnvironment.load())
 
 let restored = try await session.restore()
-// signedOutの場合、ユーザーが入力したメールを使う。
-let next = try await session.signIn(email: email)
-// next == .emailCodeならメールで受け取ったコードを入力する。
-let signedIn = try await session.confirm(code: code)
+if case .signedOut = restored {
+    // ログインボタンの操作で、ユーザーが入力したメールを使う。
+    let next = try await session.signIn(email: email)
+    // .emailCode / .accountConfirmationならコード入力画面を表示し、
+    // ユーザーが受け取ったコードを送信する操作で:
+    let signedIn = try await session.confirm(code: code)
+}
 let access = try await api.currentAccess()
 // status == "ACTIVE" && canRunJobsを確認して送信を許可。
 ```
@@ -62,8 +67,13 @@ let accepted = try await api.submit(take, request: request)
 let job = try await api.getJob(id: accepted.job.id)
 ```
 
-停止・保存と送信は別操作です。通信失敗時も録音は端末に残ります。同じ送信の再試行では
-保存した同じidempotencyKeyを使ってください。`qualityBatch()`は個別カルテOff・
+停止・保存と送信は別操作です。通信失敗時も録音は端末に残ります。
+上の`submit`はアップロードから投入までを一度実行する便利メソッドです。
+応答不明の投入を再試行するアプリでは`createAudioUpload`、`uploadAudio`、
+`invokeAudioJob`を分け、アップロード済みticketと同じidempotencyKeyを保持して
+`invokeAudioJob`を再試行してください。`submit`を再び呼ぶと別のobjectKeyが発行されます。
+実装例は[PendingAudioSubmission](../samples/ios/CalliopeiaSample/PendingAudioSubmission.swift)を参照してください。
+`qualityBatch()`は個別カルテOff・
 BGM除去Offを明示します。従来の`.init(...)`では両項目の省略も可能です。
 個別カルテOnにする場合は`generateIndividualKartes: true`を指定します。
 

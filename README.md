@@ -42,6 +42,9 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 )
 ```
 
+録音・APIには`CalliopeiaSDK` productを、メールOTPログインには追加で
+`CalliopeiaAuth` productをアプリターゲットへ追加します。
+
 ## iOS (CocoaPods)
 
 `Podfile`からGitHubのリリースタグを直接指定できます。
@@ -55,6 +58,9 @@ pod 'CalliopeiaSDK',
 ```bash
 pod install
 ```
+
+`CalliopeiaAuth`はSPM専用です。CocoaPodsでは録音・APIを利用し、
+ホストアプリの認証を`CalliopeiaCredentialProvider`へ接続してください。
 
 ## iOS API
 
@@ -218,8 +224,13 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 - [Android sample](samples/android/README.md): Android Studioで`android`を開き、
   `sample-app`を実行します。
 
-サンプルへ入力した認証情報は端末へ永続化しません。本番アプリでは、ログイン済みの
-ホストアプリから短期JWTを返すcredential providerへ置き換えてください。
+iOSサンプルは`CalliopeiaSession`によるメールOTPログインを使い、Amplifyが
+Keychainへセッションを保存・復元します。JWTの手入力はありません。
+Androidサンプルは接続情報と短期JWTをメモリ内で保持する従来の参照実装です。
+Androidの本番アプリでは、ログイン済みホストアプリのcredential providerへ接続してください。
+
+新しいiOS Recorderサンプルは`main`に追加されています。サンプルを利用する場合は
+このブランチを取得してください。SDKの公開タグ`0.3.0`は変更していません。
 
 ## 商用エッジランタイム
 

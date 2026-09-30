@@ -11,6 +11,7 @@
 		2E5733E96697C7B5760D8591 /* CalliopeiaSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */; };
 		547CA156E6FDC47870F9AB5D /* CalliopeiaAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8F1F825C6917E024609F0C5A /* CalliopeiaAuth */; };
 		5F6BAB86F5E0B7834D511878 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8132687B4F04AD9CBA493B4D /* SampleModel.swift */; };
+		6425B794458D008F2B237913 /* PendingAudioSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0A5CED591C90D37BE1C96A /* PendingAudioSubmission.swift */; };
 		71F537AE045737399D83341E /* CalliopeiaSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */; };
 		9711185781E5A037C56776DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48ACA0508594B61F6FC07DD3 /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -29,6 +30,7 @@
 		0BD31041C80EEF55EA4557E7 /* CalliopeiaSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CalliopeiaSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F6A4553A1C8A5A498D3191B /* CalliopeiaSampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalliopeiaSampleUITests.swift; sourceTree = "<group>"; };
 		48ACA0508594B61F6FC07DD3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7F0A5CED591C90D37BE1C96A /* PendingAudioSubmission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingAudioSubmission.swift; sourceTree = "<group>"; };
 		8132687B4F04AD9CBA493B4D /* SampleModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleModel.swift; sourceTree = "<group>"; };
 		9FF43D081D32C4C6F62F7E4B /* calliopeia-mobile-sdk */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "calliopeia-mobile-sdk"; path = ../..; sourceTree = SOURCE_ROOT; };
 		C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalliopeiaSampleApp.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 			children = (
 				C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */,
 				48ACA0508594B61F6FC07DD3 /* ContentView.swift */,
+				7F0A5CED591C90D37BE1C96A /* PendingAudioSubmission.swift */,
 				8132687B4F04AD9CBA493B4D /* SampleModel.swift */,
 			);
 			path = CalliopeiaSample;
@@ -190,6 +193,7 @@
 			files = (
 				2E5733E96697C7B5760D8591 /* CalliopeiaSampleApp.swift in Sources */,
 				9711185781E5A037C56776DC /* ContentView.swift in Sources */,
+				6425B794458D008F2B237913 /* PendingAudioSubmission.swift in Sources */,
 				5F6BAB86F5E0B7834D511878 /* SampleModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -22,7 +22,7 @@ final class SampleModel: ObservableObject {
     private let session = CalliopeiaSession()
     private var api: CalliopeiaAPIClient?
     private var configured = false
-    private var request = CalliopeiaAudioJobRequest.qualityBatch()
+    private var pendingSubmission: PendingAudioSubmission?
 
     var signedIn: Bool {
         if case .signedIn = loginStep { return true }
@@ -84,7 +84,7 @@ final class SampleModel: ObservableObject {
             code = ""
             jobID = nil
             result = ""
-            request = .qualityBatch()
+            pendingSubmission = nil
             accountStatus = "ログアウトしました"
         } catch { accountStatus = message(for: error) }
     }
@@ -102,7 +102,7 @@ final class SampleModel: ObservableObject {
             recording = nil
             jobID = nil
             result = ""
-            request = .qualityBatch()
+            pendingSubmission = nil
             isRecording = true
             UIApplication.shared.isIdleTimerDisabled = true
             status = "録音中 · \(Int(format.actualSampleRate)) Hz / \(format.channelCount) ch"
@@ -131,8 +131,12 @@ final class SampleModel: ObservableObject {
         status = "音声を送信しています"
         defer { isWorking = false }
         do {
-            // Reuse the same idempotency key if a network failure requires a retry.
-            let submission = try await api.submit(recording, request: request)
+            if pendingSubmission == nil {
+                pendingSubmission = PendingAudioSubmission(fileURL: recording.audioURL,
+                                                           durationSeconds: recording.durationSeconds)
+            }
+            guard let pendingSubmission else { return }
+            let submission = try await pendingSubmission.submit(using: api)
             jobID = submission.job.id
             status = "受付済み。状態を更新して結果を確認してください"
         } catch { status = message(for: error) }
