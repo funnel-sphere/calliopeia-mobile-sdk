@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		09298F609B8C5F6D19B2A6A1 /* CalliopeiaSampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6A4553A1C8A5A498D3191B /* CalliopeiaSampleUITests.swift */; };
 		2E5733E96697C7B5760D8591 /* CalliopeiaSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73CA1DE58924F1572FDC91A /* CalliopeiaSampleApp.swift */; };
+		547CA156E6FDC47870F9AB5D /* CalliopeiaAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8F1F825C6917E024609F0C5A /* CalliopeiaAuth */; };
 		5F6BAB86F5E0B7834D511878 /* SampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8132687B4F04AD9CBA493B4D /* SampleModel.swift */; };
 		71F537AE045737399D83341E /* CalliopeiaSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */; };
 		9711185781E5A037C56776DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48ACA0508594B61F6FC07DD3 /* ContentView.swift */; };
@@ -40,6 +41,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				71F537AE045737399D83341E /* CalliopeiaSDK in Frameworks */,
+				547CA156E6FDC47870F9AB5D /* CalliopeiaAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +128,7 @@
 			name = CalliopeiaSample;
 			packageProductDependencies = (
 				43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */,
+				8F1F825C6917E024609F0C5A /* CalliopeiaAuth */,
 			);
 			productName = CalliopeiaSample;
 			productReference = 0BD31041C80EEF55EA4557E7 /* CalliopeiaSample.app */;
@@ -286,7 +289,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -387,7 +390,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -442,6 +445,10 @@
 		43901FCAD1F4D93794C8C869 /* CalliopeiaSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CalliopeiaSDK;
+		};
+		8F1F825C6917E024609F0C5A /* CalliopeiaAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CalliopeiaAuth;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,141 +1,102 @@
+import AVFoundation
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = SampleModel()
-    @FocusState private var focusedField: Field?
-
-    private enum Field: Hashable {
-        case endpoint
-        case apiKey
-        case token
-        case recordID
-    }
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
-                    connectionSection
-                    recordingSection
-                    jobSection
+        NavigationStack {
+            Form {
+                Section("録音") {
+                    Text("高品質録音を端末に保存し、確認してから送信します。")
+                        .foregroundStyle(.secondary)
+                    if model.isRecording {
+                        Button("録音を停止", role: .destructive) {
+                            Task { await model.stopRecording() }
+                        }.accessibilityIdentifier("stop-recording")
+                    } else {
+                        Button("録音開始", systemImage: "mic.fill") {
+                            Task { await model.startRecording() }
+                        }.accessibilityIdentifier("start-recording")
+                    }
+                    if let recording = model.recording {
+                        Text(String(format: "保存済み · %.1f 秒", recording.durationSeconds))
+                        ShareLink("録音を共有", item: recording.audioURL)
+                        ShareLink("元のWAVを共有", item: recording.rawMasterURL)
+                    }
+                }.disabled(model.isWorking)
+
+                Section("アカウント") {
+                    if let error = model.configurationError {
+                        Text(error).foregroundStyle(.secondary)
+                    } else if model.signedIn {
+                        Text(model.email).textSelection(.enabled)
+                        Text(model.accountStatus).foregroundStyle(.secondary)
+                        Button("ログアウト") { Task { await model.signOut() } }
+                    } else {
+                        TextField("メールアドレス", text: $model.email)
+                            .keyboardType(.emailAddress)
+                            .textContentType(.username)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .disabled(model.awaitingCode)
+                            .accessibilityIdentifier("email")
+                        if model.awaitingCode {
+                            TextField("確認コード", text: $model.code)
+                                .keyboardType(.numberPad)
+                                .textContentType(.oneTimeCode)
+                                .accessibilityIdentifier("otp")
+                            Button("コードを確認") { Task { await model.confirm() } }
+                                .disabled(model.code.isEmpty)
+                            Button("コードを再送") { Task { await model.resend() } }
+                        } else {
+                            Button("ログインコードを送信") { Task { await model.signIn() } }
+                                .disabled(model.email.isEmpty)
+                        }
+                        Text(model.accountStatus).foregroundStyle(.secondary)
+                    }
+                }.disabled(model.isWorking || model.isRecording)
+
+                Section("送信と結果") {
+                    Button("録音を送信", systemImage: "arrow.up.circle") {
+                        Task { await model.submit() }
+                    }
+                    .disabled(!model.canSubmit)
+                    .accessibilityIdentifier("submit-recording")
+                    Text(model.status).textSelection(.enabled)
+                        .accessibilityIdentifier("job-status")
+                    if model.isWorking { ProgressView() }
+                    if let jobID = model.jobID {
+                        Text(jobID).font(.caption.monospaced()).textSelection(.enabled)
+                        Button("状態を更新", systemImage: "arrow.clockwise") {
+                            Task { await model.refreshStatus() }
+                        }.disabled(model.isWorking || model.isRecording)
+                    }
+                    if !model.result.isEmpty {
+                        Text(model.result).textSelection(.enabled)
+                            .accessibilityIdentifier("job-result")
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
+                Section {
+                    Text("録音と結果は機微情報を含む場合があります。共有先を確認してください。端末内の保存ファイルは自動削除されません。")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
-            .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("Calliopeia Sample")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("完了") { focusedField = nil }
-                }
+            .scrollDismissesKeyboard(.interactively)
+        }
+        .task { await model.configure() }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { notification in
+            if let type = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+               type == AVAudioSession.InterruptionType.began.rawValue {
+                Task { await model.stopRecording(interrupted: true) }
             }
         }
-        .navigationViewStyle(.stack)
-        .tint(.calliopeiaPink)
-    }
-
-    private var connectionSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("接続", systemImage: "network")
-            field("GraphQL endpoint", text: $model.graphQLEndpoint, field: .endpoint)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.URL)
-            field("AppSync API key", text: $model.appSyncAPIKey, field: .apiKey)
-                .textInputAutocapitalization(.never)
-            SecureField("短期JWT", text: $model.accessToken)
-                .textContentType(.password)
-                .focused($focusedField, equals: .token)
-                .sampleField()
-                .accessibilityIdentifier("access-token")
-            Text("認証情報はこのセッション内だけで保持されます")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        .onChange(of: scenePhase) { _, phase in
+            // This sample has no background-recording entitlement.
+            if phase == .background { Task { await model.stopRecording(interrupted: true) } }
         }
     }
-
-    private var recordingSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("録音と送信", systemImage: "waveform")
-            field("自社レコードID", text: $model.externalRecordID, field: .recordID)
-                .textInputAutocapitalization(.never)
-
-            HStack(spacing: 12) {
-                Button {
-                    Task { await model.startRecording() }
-                } label: {
-                    Label("録音開始", systemImage: "mic.fill")
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!model.canStart)
-                .accessibilityIdentifier("start-recording")
-
-                Button {
-                    Task { await model.stopAndSubmit() }
-                } label: {
-                    Label("停止・送信", systemImage: "arrow.up.circle.fill")
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .buttonStyle(.bordered)
-                .disabled(!model.isRecording || model.isWorking)
-                .accessibilityIdentifier("stop-and-submit")
-            }
-        }
-    }
-
-    private var jobSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("ジョブ", systemImage: "doc.text.magnifyingglass")
-            Text(model.status)
-                .font(.body.monospaced())
-                .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, minHeight: 54, alignment: .topLeading)
-                .textSelection(.enabled)
-                .accessibilityIdentifier("job-status")
-
-            Button {
-                Task { await model.refreshStatus() }
-            } label: {
-                Label("状態を更新", systemImage: "arrow.clockwise")
-                    .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.bordered)
-            .disabled(!model.canRefresh)
-            .accessibilityIdentifier("refresh-status")
-        }
-    }
-
-    private func sectionTitle(_ title: String, systemImage: String) -> some View {
-        Label(title, systemImage: systemImage)
-            .font(.headline)
-            .foregroundStyle(Color.calliopeiaInk)
-    }
-
-    private func field(_ title: String, text: Binding<String>, field: Field) -> some View {
-        TextField(title, text: text)
-            .focused($focusedField, equals: field)
-            .sampleField()
-            .accessibilityIdentifier(String(describing: field))
-    }
-}
-
-private extension View {
-    func sampleField() -> some View {
-        padding(.horizontal, 14)
-            .frame(minHeight: 48)
-            .background(Color(uiColor: .secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .stroke(Color.calliopeiaBorder, lineWidth: 1)
-            }
-    }
-}
-
-private extension Color {
-    static let calliopeiaPink = Color(red: 0.76, green: 0.09, blue: 0.36)
-    static let calliopeiaInk = Color(red: 0.16, green: 0.13, blue: 0.18)
-    static let calliopeiaBorder = Color(red: 0.89, green: 0.82, blue: 0.85)
 }

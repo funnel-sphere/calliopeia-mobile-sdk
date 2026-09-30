@@ -14,3 +14,7 @@ android/local.properties
 *.wav
 *.m4a
 *.mp3
+
+# A sample consumer supplies their own public deployment configuration.
+samples/ios/CalliopeiaSample/amplify_outputs.json
+samples/ios/CalliopeiaSample.xcodeproj/xcuserdata/

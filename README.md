@@ -212,8 +212,9 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 
 公開リポジトリ内に、録音からジョブ登録、状態取得までを確認できる参照実装があります。
 
-- [iOS SwiftUI sample](samples/ios/README.md): Xcodeで
-  `samples/ios/CalliopeiaSample.xcodeproj`を開きます。
+- [iOS SwiftUI recorder sample](samples/ios/README.md): 高品質録音、メールOTPログイン、
+  明示的な送信、結果表示を公開SDKだけで実装しています。Xcodeで
+  `samples/ios/CalliopeiaSample.xcodeproj`を開きます。実際の接続設定は各利用者が追加します。
 - [Android sample](samples/android/README.md): Android Studioで`android`を開き、
   `sample-app`を実行します。
 

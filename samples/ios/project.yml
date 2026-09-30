@@ -2,7 +2,7 @@ name: CalliopeiaSample
 options:
   bundleIdPrefix: com.funnelsphere.calliopeia
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "17.0"
 packages:
   CalliopeiaMobileSDK:
     path: ../..
@@ -19,6 +19,8 @@ targets:
     dependencies:
       - package: CalliopeiaMobileSDK
         product: CalliopeiaSDK
+      - package: CalliopeiaMobileSDK
+        product: CalliopeiaAuth
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.funnelsphere.calliopeia.sample
