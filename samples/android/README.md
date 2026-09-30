@@ -1,9 +1,53 @@
-# Android sample
+# Android Recorder sample
 
-Open the `android` directory in Android Studio and run the `sample-app`
-configuration on Android 8.0 or newer.
+公開SDKだけでメールOTPログイン、原音録音、明示的な音声送信、結果表示を実装したサンプルです。
+Android 8.0（API 26）以降を対象にします。ライセンスはリポジトリと同じApache-2.0です。
 
-The sample depends on the repository's local `:calliopeia-sdk` module. It keeps
-endpoint and credential values in memory only. Replace the token field with a
-`CalliopeiaCredentialProvider` backed by the host application's authenticated
-session before production use.
+## 起動
+
+1. Android Studioでリポジトリの`android`ディレクトリを開きます。
+2. JDK 17以降とAndroid SDK 36を用意します。
+3. 自分のCalliopeia環境の`amplify_outputs.json`を
+   `samples/android/src/main/assets/amplify_outputs.json`へ置きます。ディレクトリがなければ作成します。
+   このファイルはGit対象外です。[設定形式の例](../ios/amplify_outputs.example.json)は架空の値のため、そのままでは接続できません。
+4. `sample-app`をエミュレーターまたは端末で実行します。
+
+```bash
+cd android
+./gradlew :sample-app:installDebug
+```
+
+接続設定がなくても録音・保存は利用できます。メールOTPは既存アカウント向けです。
+テナントAPIキーや固定JWTをアプリへ埋め込む必要はありません。
+アカウントが未確認の場合は確認コードを受け取り、確認後にログイン用のコードを送信します。
+
+## 操作
+
+1. 「録音開始」でマイク利用を許可します。
+2. 「停止して保存」で原音WAV、AAC-LC M4A（64 kbps / mono）、形式情報のJSONを保存します。
+3. メールアドレスで「確認コードを送信」を押し、届いたコードでログインします。
+4. 送信権限の表示を確認し、「録音を送信」を押します。
+5. 「状態を更新」で解析状態と結果を表示します。品質優先、個別カルテOff、BGM除去Offが既定です。
+
+録音は認証・ネットワークと独立しています。原音は48 kHzを要求し、端末の実際の形式と
+音源をJSONへ記録します。`UNPROCESSED`非対応端末ではAndroid推奨の`VOICE_RECOGNITION`を使います。
+ノイズ除去・AGC・エコー除去をSDK側から有効化しません。
+Android版のAAC書き出しはゲイン1.0です。iOS Recorderの音量正規化と同一の音響出力を保証するものではありません。
+
+通信が途切れた場合は同じ録音を再度送信してください。アップロード済みticketと冪等キーを保持しており、
+受付応答だけが失われた場合は同じジョブを取得します。別の録音を開始すると送信状態は新しくなります。
+`stopAndSubmit`や`submitAudio`を繰り返し呼んで再試行する実装にはしないでください。
+
+## 保存とライフサイクル
+
+セッションの保存・復元と期限切れトークンの更新はAmplify Androidが行います。
+録音はアプリ専用の`files/CalliopeiaRecordings`へ保存し、自動削除しません。
+バックグラウンドへ移ると録音を停止して保存します。自動送信やバックグラウンド録音は行いません。
+Activityの再生成では録音・送信状態を保持しますが、プロセス終了後は録音の選択・job ID・
+送信再試行状態を復元しません。長期運用のアプリでは、認証情報以外の必要な状態も自社の保存方針で永続化してください。
+ログアウトすると選択と画面上の結果を消しますが、保存ファイルは残ります。
+
+エミュレーターでは画面、OSの録音・書き出し経路、認証、実APIを確認できます。
+端末固有のマイク品質や音響特性は実機で確認してください。
+
+認証とAPIの組み込み方は[Android SDKガイド](../../docs/android-recorder.md)を参照してください。

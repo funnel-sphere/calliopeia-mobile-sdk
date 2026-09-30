@@ -1,8 +1,8 @@
 # Recorder互換の録音・ログイン・API
 
 この節のAPIは0.3.0以降で利用できます。Swift Packageのバージョンに
-0.3.0以降を指定してください。通常の録音にEdgeRuntimeや
-ノイズ除去モデルは不要です。旧APIとpaired recordingは後方互換用に残しています。
+0.3.0以降を指定してください。OS標準APIで原音を録音します。
+旧APIとpaired recordingは後方互換用に残しています。
 
 ## 構成
 

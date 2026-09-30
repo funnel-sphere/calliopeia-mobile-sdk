@@ -5,7 +5,7 @@ plugins {
 }
 
 group = providers.gradleProperty("group").orElse("com.calliopeia").get()
-version = providers.gradleProperty("version").orElse("0.1.1").get()
+version = providers.gradleProperty("version").orElse("0.4.0-SNAPSHOT").get()
 
 android {
     namespace = "com.calliopeia.sdk"

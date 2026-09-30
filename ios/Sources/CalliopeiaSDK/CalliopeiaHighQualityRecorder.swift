@@ -21,7 +21,7 @@ public struct CalliopeiaHighQualityRecording: Codable, Sendable {
     public var durationSeconds: Double { export.sourceMetrics.duration }
 }
 
-/// High-quality capture without EdgeRuntime, Rust, or a noise-removal model.
+/// High-quality raw capture using the system audio APIs.
 /// Own this object for the entire recording. Stop explicitly on interruption.
 @MainActor
 public final class CalliopeiaHighQualityRecorder {

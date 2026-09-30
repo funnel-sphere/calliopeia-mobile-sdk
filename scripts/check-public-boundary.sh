@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-forbidden_pattern='(^|/)(shared/rust-core|models|ios/Distribution/Native|android/rust-core|xcuserdata)(/|$)|(^|/)amplify_outputs\.json$|\.xcframework/|\.(aar|so|a|dylib|onnx|wav|m4a|mp3)$'
+forbidden_pattern='(^|/)(models|xcuserdata)(/|$)|(^|/)amplify_outputs\.json$|\.xcframework/|\.(aar|so|a|dylib|onnx|wav|m4a|mp3)$'
 violations="$(git ls-files | grep -E "${forbidden_pattern}" || true)"
 
 if [[ -n "${violations}" ]]; then
-  echo "Runtime, model, audio, binary, local configuration, or user project artifacts must not be tracked:" >&2
+  echo "Model, audio, binary, local configuration, or user project artifacts must not be tracked:" >&2
   echo "${violations}" >&2
   exit 1
 fi

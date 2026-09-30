@@ -20,7 +20,7 @@ the immutable SDK `0.3.0` tag and uses the APIs available in that release.
 The app uses `CalliopeiaHighQualityRecorder`: raw capture with voice processing
 disabled, a preferred 48 kHz rate, WAV retention, and the Recorder-derived AAC
 export. The actual route/format/gain are saved in a JSON manifest beside each
-recording. No noise-removal model or EdgeRuntime download is needed. See
+recording through the system audio APIs. See
 [the capture contract](../../docs/recorder-capture.md) for parameters and limits.
 
 ## Enable email OTP and API calls

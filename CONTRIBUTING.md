@@ -11,5 +11,4 @@ swift test
 cd android && ./gradlew test lint
 ```
 
-Do not submit model weights, production recordings, credentials, proprietary
-runtime binaries, or source copied from the separately licensed edge runtime.
+Do not submit model weights, production recordings, credentials, or generated binaries.

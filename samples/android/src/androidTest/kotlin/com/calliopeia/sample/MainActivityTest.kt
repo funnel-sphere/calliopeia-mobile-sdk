@@ -14,10 +14,8 @@ class MainActivityTest {
     @Test
     fun primaryWorkflowIsVisible() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            onView(withContentDescription("GraphQL endpoint")).check(matches(isDisplayed()))
             onView(withContentDescription("録音開始")).check(matches(isDisplayed()))
-            onView(withContentDescription("停止・送信")).check(matches(isDisplayed()))
-            onView(withContentDescription("ジョブ状態")).check(matches(isDisplayed()))
+            onView(withContentDescription("停止して保存")).check(matches(isDisplayed()))
         }
     }
 }

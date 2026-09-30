@@ -5,6 +5,7 @@ DerivedData/
 artifacts/
 *.xcresult
 android/.gradle/
+android/.kotlin/
 android/**/build/
 samples/android/build/
 android/local.properties
@@ -17,4 +18,5 @@ android/local.properties
 
 # A sample consumer supplies their own public deployment configuration.
 samples/ios/CalliopeiaSample/amplify_outputs.json
+samples/android/src/main/assets/amplify_outputs.json
 samples/ios/CalliopeiaSample.xcodeproj/xcuserdata/

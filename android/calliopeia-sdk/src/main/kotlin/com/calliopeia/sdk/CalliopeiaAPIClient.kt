@@ -17,7 +17,7 @@ import java.net.URLEncoder
 
 class CalliopeiaAPIClient(
     private val configuration: CalliopeiaAPIConfiguration,
-    private val credentialProvider: CalliopeiaCredentialProvider,
+    internal val credentialProvider: CalliopeiaCredentialProvider,
     private val transport: CalliopeiaTransport = URLConnectionCalliopeiaTransport(),
 ) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -90,6 +90,9 @@ class CalliopeiaAPIClient(
         if (request.auditBatchSize != null && request.auditBatchSize !in 1..16) {
             throw CalliopeiaSDKException.InvalidRequest("auditBatchSize must be between 1 and 16")
         }
+        if (request.bgmSeparation != null && request.bgmSeparation !in setOf("on", "off")) {
+            throw CalliopeiaSDKException.InvalidRequest("bgmSeparation must be on or off")
+        }
         if (request.responseMode == CalliopeiaResponseMode.WEBHOOK && request.webhookEndpointID == null) {
             throw CalliopeiaSDKException.InvalidRequest(
                 "webhookEndpointID is required for WEBHOOK mode",
@@ -106,6 +109,8 @@ class CalliopeiaAPIClient(
         )
         variables.putOptional("audioSeconds", audioSeconds?.let(::JsonPrimitive))
         variables.putOptional("processingProfileId", request.processingProfileID?.let(::JsonPrimitive))
+        variables.putOptional("bgmSeparation", request.bgmSeparation?.let(::JsonPrimitive))
+        variables.putOptional("generateIndividualKartes", request.generateIndividualKartes?.let(::JsonPrimitive))
         variables.putOptional("extractionEffort", request.extractionEffort?.apiValue?.let(::JsonPrimitive))
         variables.putOptional("transcriptSupportAuditMode", request.auditMode?.apiValue?.let(::JsonPrimitive))
         variables.putOptional("auditEffort", request.auditEffort?.apiValue?.let(::JsonPrimitive))
@@ -211,7 +216,7 @@ class CalliopeiaAPIClient(
         return response.parseObject().toPullJobResponse()
     }
 
-    private suspend fun graphQL(
+    internal suspend fun graphQL(
         query: String,
         variables: Map<String, JsonElement>,
         credential: CalliopeiaCredential,
@@ -320,7 +325,7 @@ class CalliopeiaAPIClient(
     private class PropertyCounter(var value: Int = 0)
 
     companion object {
-        private const val MAXIMUM_AUDIO_BYTES = 2L * 1_024 * 1_024 * 1_024
+        private const val MAXIMUM_AUDIO_BYTES = 2_147_483_647L
         private const val PASSTHROUGH_MAXIMUM_BYTES = 16 * 1_024
         private const val PASSTHROUGH_MAXIMUM_DEPTH = 6
         private const val PASSTHROUGH_MAXIMUM_PROPERTIES = 100
@@ -342,6 +347,7 @@ class CalliopeiaAPIClient(
               ${dollar}credential: String!, ${dollar}authType: String!, ${dollar}objectKey: String!, ${dollar}fileName: String!,
               ${dollar}contentType: String, ${dollar}fileSizeBytes: Int, ${dollar}audioSeconds: Float,
               ${dollar}processingProfileId: String, ${dollar}extractionEffort: String,
+              ${dollar}bgmSeparation: String, ${dollar}generateIndividualKartes: Boolean,
               ${dollar}transcriptSupportAuditMode: String, ${dollar}auditEffort: String,
               ${dollar}auditStrategy: String, ${dollar}auditBatchSize: Int, ${dollar}promptText: String,
               ${dollar}promptTemplateId: String, ${dollar}promptTitle: String, ${dollar}responseMode: String,
@@ -353,6 +359,7 @@ class CalliopeiaAPIClient(
                 credential: ${dollar}credential, authType: ${dollar}authType, objectKey: ${dollar}objectKey,
                 fileName: ${dollar}fileName, contentType: ${dollar}contentType, fileSizeBytes: ${dollar}fileSizeBytes,
                 audioSeconds: ${dollar}audioSeconds, processingProfileId: ${dollar}processingProfileId,
+                bgmSeparation: ${dollar}bgmSeparation, generateIndividualKartes: ${dollar}generateIndividualKartes,
                 extractionEffort: ${dollar}extractionEffort,
                 transcriptSupportAuditMode: ${dollar}transcriptSupportAuditMode,
                 auditEffort: ${dollar}auditEffort, auditStrategy: ${dollar}auditStrategy,
@@ -379,7 +386,7 @@ class CalliopeiaAPIClient(
                 error
                 job {
                   id status operation inputKind fileName audioSeconds responseText responseJson
-                  extractionEffort transcriptSupportAuditMode auditEffort auditStrategy auditBatchSize
+                  generateIndividualKartes extractionEffort transcriptSupportAuditMode auditEffort auditStrategy auditBatchSize
                   transcriptSupportAuditState transcriptSupportAuditJson deliveryBlockedReason errorMessage
                   costUsd costJpy createdAt updatedAt completedAt externalShopId externalCustomerId
                   externalKarteId externalSummaryId externalPassthrough
@@ -462,6 +469,7 @@ private fun JsonObject.toJobSnapshot() = CalliopeiaJobSnapshot(
     externalKarteID = string("externalKarteId"),
     externalSummaryID = string("externalSummaryId"),
     passthrough = element("externalPassthrough"),
+    generateIndividualKartes = boolean("generateIndividualKartes"),
 )
 
 private fun JsonObject.toPullJobResponse(): CalliopeiaPullJobResponse {

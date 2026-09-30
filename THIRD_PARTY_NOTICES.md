@@ -11,8 +11,9 @@ Their own license terms continue to apply.
 | Kotlin Coroutines | Android asynchronous I/O runtime | Apache-2.0 |
 | Kotlin Serialization | Android JSON model and parser | Apache-2.0 |
 | Gradle Wrapper | Reproducible Android builds | Apache-2.0 |
+| AWS Amplify Swift | Optional iOS Cognito authentication | Apache-2.0 |
+| AWS Amplify Android | Optional Android Cognito authentication | Apache-2.0 |
 | JUnit 4 | Android unit tests only | EPL-1.0 |
 
 Apple system frameworks and the Swift toolchain are supplied by Apple and are
-not redistributed by this repository. The separately licensed Calliopeia edge
-runtime and model weights are not present in this repository.
+not redistributed by this repository.

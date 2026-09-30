@@ -6,8 +6,7 @@ Calliopeiaへ高品質な原音を録音・送信するためのiOS/Android向�
 OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパススルー情報、
 品質検査の拡張インターフェースを提供します。
 
-このリポジトリには、Calliopeia本体、ノイズ除去モデル、モデル重み、実データ、
-認証情報、プロプライエタリなエッジ処理バイナリは含みません。
+このリポジトリには、Calliopeia本体、モデル重み、実データ、認証情報は含みません。
 
 ## 公開範囲
 
@@ -17,13 +16,12 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 | iOS/Android raw audio capture | Apache-2.0 | Yes |
 | iOS/Android Calliopeia API client | Apache-2.0 | Yes |
 | Quality-inspection extension interface | Apache-2.0 | Yes |
-| Calliopeia edge-processing runtime | Commercial | No |
 | Model weights | Weight-specific terms | No |
 | Calliopeia service backend | Proprietary service | No |
 
-公開SDKはエッジ処理バイナリなしでも原音録音とAPI投入に利用できます。
+公開SDKはOS標準APIで原音録音とAPI投入を行います。
 品質検査や補正を追加する場合は、`AudioFrameInspecting` / `AudioFrameInspector`
-を実装する別配布のランタイムを注入します。
+をアプリ側で実装できます。
 
 ## iOS (Swift Package Manager)
 
@@ -121,7 +119,7 @@ manifestには`schemaVersion`とenhancerの`identifier`も含まれます。一�
 ```swift
 let recorder = CalliopeiaRecordingClient(
     apiClient: api,
-    enhancer: commercialStreamingEnhancer,
+    enhancer: yourStreamingEnhancer,
     pairedProcessorConfiguration: .init(maximumPendingFrames: 4)
 )
 
@@ -147,66 +145,62 @@ credentialを別々に設定します。長期APIキーや固定JWTをアプリ�
 
 ## Android
 
-JitPackを利用すると、GitHubのリリースタグからMaven依存関係として直接導入できます。
-`settings.gradle.kts`へリポジトリを追加します。
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-    }
-}
-```
+Androidの高品質録音・メールOTP・現行API対応は`main`にあります。
+この更新を利用する場合はリポジトリを取得して`android`を開き、
+`calliopeia-sdk`と、ログインが必要なら`calliopeia-auth`を参照してください。
+公開済みタグ`0.3.0`には今回のAndroid更新は含まれていません。
 
 ```kotlin
 dependencies {
-    implementation(
-        "com.github.funnel-sphere.calliopeia-mobile-sdk:calliopeia-sdk:0.3.0"
-    )
+    implementation(project(":calliopeia-sdk"))
+    implementation(project(":calliopeia-auth")) // メールOTP・セッション管理
 }
 ```
 
-アプリ側で`RECORD_AUDIO`のランタイム権限を取得してから開始します。
+`Application.onCreate`で接続設定を一度読み込み、認証を初期化します。
+既にAmplifyを設定済みのアプリは、自身の初期化を利用してください。
+認証モジュールのdesugaring設定などは[導入手順](docs/android-recorder.md)を参照してください。
 
 ```kotlin
-val credentials = CalliopeiaCredentialProvider {
-    CalliopeiaCredential(value = session.currentAccessToken())
-}
-val api = CalliopeiaAPIClient(
-    configuration = CalliopeiaAPIConfiguration(
-        graphQLEndpoint = URI.create(environment.calliopeiaGraphQLEndpoint),
-        appSyncAPIKey = environment.calliopeiaAppSyncAPIKey,
-        pullAPIBaseURL = URI.create(environment.calliopeiaPullAPIBaseURL),
-        graphQLAuthorization = CalliopeiaGraphQLAuthorization.COGNITO_USER_POOLS,
-    ),
-    credentialProvider = credentials,
-)
-val recorder = CalliopeiaRecordingClient(context, api)
+val outputs = assets.open("amplify_outputs.json").bufferedReader().use { it.readText() }
+CalliopeiaSession.configure(applicationContext, outputs)
+val environment = CalliopeiaEnvironment(outputs)
+val session = CalliopeiaSession()
+val api = session.makeAPI(environment)
 
-recorder.startRecording(mode = CaptureMode.RAW_MASTER)
-
-lifecycleScope.launch {
-    val request = CalliopeiaAudioJobRequest(
-        extractionEffort = CalliopeiaExtractionEffort.MAXIMUM,
-        auditMode = CalliopeiaAuditMode.OBSERVE,
-        auditEffort = CalliopeiaAuditEffort.MAXIMUM,
-        auditStrategy = CalliopeiaAuditStrategy.ATOMIC_BATCH,
-        passthrough = buildJsonObject {
-            put("crm_customer_id", customerID)
-            put("source", "mobile")
-        },
-    )
-    val (_, submission) = recorder.stopAndSubmit(request)
-    val result = api.getJob(submission.job.id)
-}
+// coroutine内。既存アカウントのメールOTPログイン
+session.signIn(email)
+session.confirm(code)
+// 次回起動時はsession.restore()。トークンの保存・更新はAmplifyが担当します。
 ```
 
-同じCalliopeia Cognito User Poolへログインしない外部アプリでは、既定の
-`CalliopeiaGraphQLAuthorization.API_KEY`を使用します。`CalliopeiaTransport`を
-実装して差し込めば、既存のHTTPクライアントや監視処理へ
-置き換えられます。標準実装は大きな音声ファイルをメモリへ載せずストリーミングします。
+マイク権限を取得した後、ログインせずに録音・保存できます。
+録音機能にはノイズ除去モデルや別配布のネイティブライブラリは不要です。
+
+```kotlin
+val recorder = CalliopeiaHighQualityRecorder(context)
+recorder.start()
+// coroutine内。原音WAVを残し、AAC-LC 64 kbpsのM4Aを作成
+val recording = recorder.stop()
+
+// ユーザーが送信を選んだ時点で実行
+val pending = CalliopeiaPendingAudioSubmission(
+    recording.audio.file, recording.audio.contentType, recording.audio.durationSeconds,
+)
+val submission = pending.submit(api) // 品質優先・個別カルテOff・BGM除去Off
+val result = api.getJob(submission.job.id)
+val transcript = api.getProvisionalTranscript(submission.job.id)
+```
+
+応答が失われた場合は同じ`pending`を保持して再送します。
+アップロード済みの音声と冪等キーを再利用します。サンプルではActivityの再生成を
+またいで保持しますが、プロセス終了後の送信再開は実装していません。
+原音の取得条件・OSごとの差と保存ファイルは[Android録音仕様](docs/android-recorder.md)に記載しています。
+
+独自認証を使うホストアプリは`CalliopeiaCredentialProvider`を実装できます。
+同じCalliopeia Cognito User Poolでは`COGNITO_USER_POOLS`、外部テナントの認証では
+`API_KEY`を選び、AppSync公開キーと外部credentialを別々に設定します。
+長期APIキーや固定JWTをアプリに埋め込まないでください。
 
 ## パススルー情報
 
@@ -226,24 +220,11 @@ SDKはバックエンドと同じサイズ、深さ、プロパティ数、キ�
 
 iOSサンプルは`CalliopeiaSession`によるメールOTPログインを使い、Amplifyが
 Keychainへセッションを保存・復元します。JWTの手入力はありません。
-Androidサンプルは接続情報と短期JWTをメモリ内で保持する従来の参照実装です。
-Androidの本番アプリでは、ログイン済みホストアプリのcredential providerへ接続してください。
+AndroidサンプルもメールOTPとセッション復元を使います。原音WAV・M4Aを保存し、
+ログイン後に明示的に送信して結果を確認できます。
 
-新しいiOS Recorderサンプルは`main`に追加されています。サンプルを利用する場合は
+iOS RecorderサンプルとAndroid更新は`main`に追加されています。サンプルを利用する場合は
 このブランチを取得してください。SDKの公開タグ`0.3.0`は変更していません。
-
-## 商用エッジランタイム
-
-独自DSP、Rustネイティブコア、モデル重みを含む商用ランタイムは、この公開SDKと
-分離して認証付きで配布します。公開SDKは単独で動作し、商用ランタイムを利用する
-契約では次の拡張点へ実装を注入します。
-
-- iOS: `AudioFrameInspecting`
-- iOS audio enhancement: `StreamingAudioEnhancer`
-- Android: `AudioFrameInspector`
-
-この分離により、アプリの連携コードとサンプルはOSSのまま再利用でき、商用バイナリ、
-モデル、顧客別の利用権限は公開リポジトリへ含めずに更新できます。
 
 ## ビルドとテスト
 
@@ -258,5 +239,4 @@ cd android
 
 [Apache License 2.0](LICENSE)
 
-`NOTICE`に明記したとおり、別配布の商用ランタイムおよびモデル重みにはこの
-ライセンスは適用されません。
+依存ライブラリのライセンスは`THIRD_PARTY_NOTICES.md`を参照してください。

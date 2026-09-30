@@ -85,7 +85,21 @@ data class CalliopeiaAudioJobRequest(
     val karteID: String? = null,
     val summaryID: String? = null,
     val passthrough: JsonObject? = null,
-)
+    val bgmSeparation: String? = null,
+    val generateIndividualKartes: Boolean? = null,
+) {
+    companion object {
+        fun qualityBatch(
+            idempotencyKey: String = UUID.randomUUID().toString(),
+            passthrough: JsonObject? = null,
+        ) = CalliopeiaAudioJobRequest(
+            idempotencyKey = idempotencyKey, processingProfileID = "quality_batch",
+            extractionEffort = CalliopeiaExtractionEffort.MAXIMUM,
+            auditMode = CalliopeiaAuditMode.OFF, bgmSeparation = "off",
+            generateIndividualKartes = false, passthrough = passthrough,
+        )
+    }
+}
 
 data class CalliopeiaUploadTicket(
     val objectKey: String,
@@ -140,6 +154,7 @@ data class CalliopeiaJobSnapshot(
     val externalKarteID: String?,
     val externalSummaryID: String?,
     val passthrough: JsonElement?,
+    val generateIndividualKartes: Boolean? = null,
 )
 
 data class CalliopeiaPullJob(
