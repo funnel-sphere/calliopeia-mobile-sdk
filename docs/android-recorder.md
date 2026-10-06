@@ -2,7 +2,7 @@
 
 `calliopeia-sdk`は認証から独立した録音とAPIを提供します。
 メールOTPログインを使う場合は追加の`calliopeia-auth`を利用します。
-この更新版のソースは`main`から取得できます。0.3.0タグにはAndroidの新APIは含まれません。
+この更新版のソースは`0.4.0`タグから取得できます。
 
 まず[サンプル](../samples/android/README.md)のローカルGradleモジュールで確認できます。
 既存アプリへの組み込みでもKotlin 2.2.0以降とJDK 17以降を使います。
@@ -66,6 +66,8 @@ val job = api.getJob(accepted.job.id)
 成功済みアップロードを繰り返さず、同じobjectKey・冪等キーを利用します。
 プロセス終了後の再試行が必要なら、`createAudioUpload → uploadAudio → invokeAudioJob`の
 分割APIを使い、アップロード済みobjectKey・入力条件・冪等キーを安全に保存してください。
+`createAudioUpload`を直接呼ぶ場合は、`file.length()`を`fileSizeBytes: Long`で渡します。
+`submitAudio`と`CalliopeiaPendingAudioSubmission.submit`はファイルから自動取得します。
 署名付きuploadUrlは短時間のみ保持し、ログへ出さないでください。
 `submitAudio` / `stopAndSubmit`は一度の処理用です。
 

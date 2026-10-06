@@ -1,7 +1,7 @@
 # Recorder互換の録音・ログイン・API
 
 この節のAPIは0.3.0以降で利用できます。Swift Packageのバージョンに
-0.3.0以降を指定してください。OS標準APIで原音を録音します。
+0.4.0以降を指定してください。OS標準APIで原音を録音します。
 旧APIとpaired recordingは後方互換用に残しています。
 
 ## 構成
@@ -73,6 +73,8 @@ let job = try await api.getJob(id: accepted.job.id)
 `invokeAudioJob`を分け、アップロード済みticketと同じidempotencyKeyを保持して
 `invokeAudioJob`を再試行してください。`submit`を再び呼ぶと別のobjectKeyが発行されます。
 実装例は[PendingAudioSubmission](../samples/ios/CalliopeiaSample/PendingAudioSubmission.swift)を参照してください。
+`createAudioUpload`を直接呼ぶ場合は、録音ファイルの実サイズを`fileSizeBytes: Int`で渡します。
+`submitAudio`やサンプルの`PendingAudioSubmission.submit`はファイルから自動取得します。
 `qualityBatch()`は個別カルテOff・
 BGM除去Offを明示します。従来の`.init(...)`では両項目の省略も可能です。
 個別カルテOnにする場合は`generateIndividualKartes: true`を指定します。

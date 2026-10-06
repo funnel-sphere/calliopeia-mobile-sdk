@@ -56,6 +56,10 @@ class CalliopeiaAPIClientTest {
         assertEquals(3, transport.requests.size)
         assertEquals("public-appsync-key", transport.requests[0].headers["x-api-key"])
         assertEquals(null, transport.requests[0].headers["Authorization"])
+        val createBody = Json.parseToJsonElement((transport.requests[0].body as CalliopeiaRequestBody.Bytes).value.decodeToString()).jsonObject
+        assertEquals("128", createBody.getValue("variables").jsonObject.getValue("fileSizeBytes").jsonPrimitive.content)
+        assertTrue(createBody.getValue("query").jsonPrimitive.content.contains("\$fileSizeBytes: Int!"))
+        assertTrue(createBody.getValue("query").jsonPrimitive.content.contains("fileSizeBytes: \$fileSizeBytes"))
         val upload = transport.requests[1]
         assertEquals("PUT", upload.method)
         assertEquals("audio/wav", upload.headers["Content-Type"])
@@ -69,6 +73,18 @@ class CalliopeiaAPIClientTest {
             "{\"crm_record_id\":\"C-123\"}",
             variables.getValue("passthrough").jsonPrimitive.content,
         )
+    }
+
+    @Test
+    fun createUploadRejectsInvalidSizeBeforeNetwork() = runBlocking {
+        val transport = QueueTransport()
+        for (size in listOf(0L, -1L, 2147483648L)) {
+            try {
+                client(transport).createAudioUpload("audio.wav", "audio/wav", size)
+                fail("Expected invalid file size to be rejected")
+            } catch (_: CalliopeiaSDKException.InvalidRequest) { }
+        }
+        assertTrue(transport.requests.isEmpty())
     }
 
     @Test
@@ -157,7 +173,7 @@ class CalliopeiaAPIClientTest {
             transport = transport,
         )
 
-        val ticket = client.createAudioUpload("audio.wav", "audio/wav")
+        val ticket = client.createAudioUpload("audio.wav", "audio/wav", 128)
 
         assertEquals("tenant/audio.wav", ticket.objectKey)
         assertEquals("cognito-id-token", transport.requests.single().headers["Authorization"])

@@ -34,13 +34,16 @@ final class CalliopeiaSDKTests: XCTestCase {
                 let body = try request.bodyData()
                 let object = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
                 let query = try XCTUnwrap(object["query"] as? String)
+                let variables = try XCTUnwrap(object["variables"] as? [String: Any])
+                XCTAssertEqual(variables["fileSizeBytes"] as? Int, 128)
                 if query.contains("CreateAudioUpload") {
+                    XCTAssertTrue(query.contains("$fileSizeBytes: Int!"))
+                    XCTAssertTrue(query.contains("fileSizeBytes: $fileSizeBytes"))
                     return Self.jsonResponse(
                         url: request.url!,
                         body: #"{"data":{"externalCreateAudioUpload":{"success":true,"error":null,"upload":{"objectKey":"tenant/audio.wav","uploadUrl":"https://upload.example.com/audio.wav","method":"PUT","contentType":"audio/wav","expiresAt":"2026-08-03T00:00:00Z"}}}}"#
                     )
                 }
-                let variables = try XCTUnwrap(object["variables"] as? [String: Any])
                 XCTAssertEqual(variables["passthrough"] as? String, #"{"crm_record_id":"C-123"}"#)
                 XCTAssertEqual(variables["extractionEffort"] as? String, "MAX")
                 return Self.jsonResponse(
@@ -75,6 +78,24 @@ final class CalliopeiaSDKTests: XCTestCase {
 
         XCTAssertEqual(result.job.id, "abc")
         XCTAssertEqual(requests.count, 3)
+    }
+
+    func testCreateUploadRejectsInvalidSizeBeforeNetwork() async throws {
+        URLProtocolStub.handler = { _ in
+            XCTFail("Invalid file size must not reach the network")
+            throw CalliopeiaSDKError.invalidRequest("unexpected network request")
+        }
+        let client = CalliopeiaAPIClient(
+            configuration: .init(graphQLEndpoint: URL(string: "https://graphql.example.com/graphql")!, appSyncAPIKey: "key"),
+            credentialProvider: StaticCalliopeiaCredentialProvider(.init(value: "jwt")),
+            session: Self.stubSession()
+        )
+        for size in [0, -1, Int(Int32.max) + 1] {
+            do {
+                _ = try await client.createAudioUpload(fileName: "audio.wav", contentType: "audio/wav", fileSizeBytes: size)
+                XCTFail("Expected invalid file size to be rejected")
+            } catch CalliopeiaSDKError.invalidRequest { }
+        }
     }
 
     func testRejectsOversizedPassthroughBeforeNetwork() async throws {
@@ -167,7 +188,7 @@ final class CalliopeiaSDKTests: XCTestCase {
             session: Self.stubSession()
         )
 
-        let ticket = try await client.createAudioUpload(fileName: "audio.wav", contentType: "audio/wav")
+        let ticket = try await client.createAudioUpload(fileName: "audio.wav", contentType: "audio/wav", fileSizeBytes: 128)
         XCTAssertEqual(ticket.objectKey, "tenant/audio.wav")
     }
 

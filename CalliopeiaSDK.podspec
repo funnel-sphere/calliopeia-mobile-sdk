@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name = 'CalliopeiaSDK'
-  spec.version = '0.3.0'
+  spec.version = '0.4.0'
   spec.summary = 'High-fidelity recording and Calliopeia audio-analysis API client for iOS.'
   spec.description = <<-DESC
     CalliopeiaSDK records an unprocessed audio master, submits it to Calliopeia,

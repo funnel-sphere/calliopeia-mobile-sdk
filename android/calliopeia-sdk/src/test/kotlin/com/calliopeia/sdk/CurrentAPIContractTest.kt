@@ -65,6 +65,9 @@ class CurrentAPIContractTest {
                 } else {
                     val body = Json.parseToJsonElement((request.body as CalliopeiaRequestBody.Bytes).value.decodeToString()).jsonObject
                     if (body.getValue("query").jsonPrimitive.content.contains("externalCreateAudioUpload")) {
+                        assertEquals(100L, body.getValue("variables").jsonObject.getValue("fileSizeBytes").jsonPrimitive.long)
+                        assertTrue(body.getValue("query").jsonPrimitive.content.contains("\$fileSizeBytes: Int!"))
+                        assertTrue(body.getValue("query").jsonPrimitive.content.contains("fileSizeBytes: \$fileSizeBytes"))
                         creates++
                         response("""{"data":{"externalCreateAudioUpload":{"success":true,"upload":{"objectKey":"same.wav","uploadUrl":"https://upload.example/same.wav","method":"PUT","contentType":"audio/wav"}}}}""")
                     } else {

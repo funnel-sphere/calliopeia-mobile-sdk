@@ -7,8 +7,8 @@ configuration requires XcodeGen. Verified locally with Xcode 27.0 (27A266a).
 The checked-in project builds
 without a service account; local recording remains available.
 
-Use the repository's `main` branch for this Recorder sample. It was added after
-the immutable SDK `0.3.0` tag and uses the APIs available in that release.
+Use the repository's `0.4.0` tag for this Recorder sample, including the required
+audio upload size fix in `PendingAudioSubmission`.
 
 ## Run
 

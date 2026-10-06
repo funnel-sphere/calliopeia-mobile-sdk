@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 group = providers.gradleProperty("group").orElse("com.calliopeia").get()
-version = providers.gradleProperty("version").orElse("0.4.0-SNAPSHOT").get()
+version = providers.gradleProperty("version").orElse("0.4.0").get()
 android {
     namespace = "com.calliopeia.auth"
     compileSdk = 36

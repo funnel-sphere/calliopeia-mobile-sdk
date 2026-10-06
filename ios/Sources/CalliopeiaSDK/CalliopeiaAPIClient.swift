@@ -17,9 +17,12 @@ public actor CalliopeiaAPIClient {
         self.session = session
     }
 
-    public func createAudioUpload(fileName: String, contentType: String) async throws -> CalliopeiaUploadTicket {
+    public func createAudioUpload(fileName: String, contentType: String, fileSizeBytes: Int) async throws -> CalliopeiaUploadTicket {
         guard !fileName.isEmpty, !contentType.isEmpty else {
             throw CalliopeiaSDKError.invalidRequest("fileName and contentType are required")
+        }
+        guard fileSizeBytes > 0, fileSizeBytes <= Int(Int32.max) else {
+            throw CalliopeiaSDKError.invalidRequest("audio file must fit the GraphQL signed 32-bit size field")
         }
         let credential = try await credentialProvider.credential()
         let variables: [String: JSONValue] = [
@@ -27,6 +30,7 @@ public actor CalliopeiaAPIClient {
             "authType": .string(credential.type.rawValue),
             "fileName": .string(fileName),
             "contentType": .string(contentType),
+            "fileSizeBytes": .number(Double(fileSizeBytes)),
         ]
         let payload: CreateAudioUploadPayload = try await graphQL(
             query: Self.createAudioUploadMutation,
@@ -141,7 +145,7 @@ public actor CalliopeiaAPIClient {
         guard let size = attributes[.size] as? NSNumber else {
             throw CalliopeiaSDKError.invalidRequest("unable to determine audio file size")
         }
-        let ticket = try await createAudioUpload(fileName: resolvedFileName, contentType: contentType)
+        let ticket = try await createAudioUpload(fileName: resolvedFileName, contentType: contentType, fileSizeBytes: size.intValue)
         try await uploadAudio(fileURL: fileURL, using: ticket)
         return try await invokeAudioJob(
             ticket: ticket,
@@ -300,8 +304,8 @@ private struct InvokeAudioJobResult: Decodable {
 
 private extension CalliopeiaAPIClient {
     static let createAudioUploadMutation = #"""
-    mutation CreateAudioUpload($credential: String!, $authType: String!, $fileName: String!, $contentType: String!) {
-      externalCreateAudioUpload(credential: $credential, authType: $authType, fileName: $fileName, contentType: $contentType) {
+    mutation CreateAudioUpload($credential: String!, $authType: String!, $fileName: String!, $contentType: String!, $fileSizeBytes: Int!) {
+      externalCreateAudioUpload(credential: $credential, authType: $authType, fileName: $fileName, contentType: $contentType, fileSizeBytes: $fileSizeBytes) {
         success
         error
         upload { objectKey uploadUrl method contentType expiresAt }

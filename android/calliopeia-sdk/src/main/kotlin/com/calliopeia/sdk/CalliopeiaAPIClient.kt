@@ -22,9 +22,12 @@ class CalliopeiaAPIClient(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun createAudioUpload(fileName: String, contentType: String): CalliopeiaUploadTicket {
+    suspend fun createAudioUpload(fileName: String, contentType: String, fileSizeBytes: Long): CalliopeiaUploadTicket {
         if (fileName.isBlank() || contentType.isBlank()) {
             throw CalliopeiaSDKException.InvalidRequest("fileName and contentType are required")
+        }
+        if (fileSizeBytes !in 1..MAXIMUM_AUDIO_BYTES) {
+            throw CalliopeiaSDKException.InvalidRequest("audio file must fit the GraphQL signed 32-bit size field")
         }
         val credential = credentialProvider.credential()
         val data = graphQL(
@@ -34,6 +37,7 @@ class CalliopeiaAPIClient(
                 "authType" to JsonPrimitive(credential.type.apiValue),
                 "fileName" to JsonPrimitive(fileName),
                 "contentType" to JsonPrimitive(contentType),
+                "fileSizeBytes" to JsonPrimitive(fileSizeBytes),
             ),
             credential = credential,
         )
@@ -162,9 +166,10 @@ class CalliopeiaAPIClient(
         if (!file.isFile) {
             throw CalliopeiaSDKException.InvalidRequest("audio file does not exist")
         }
-        val ticket = createAudioUpload(fileName, contentType)
+        val fileSizeBytes = file.length()
+        val ticket = createAudioUpload(fileName, contentType, fileSizeBytes)
         uploadAudio(file, ticket)
-        return invokeAudioJob(ticket, fileName, file.length(), audioSeconds, request)
+        return invokeAudioJob(ticket, fileName, fileSizeBytes, audioSeconds, request)
     }
 
     suspend fun getJob(id: String): CalliopeiaJobSnapshot {
@@ -333,8 +338,8 @@ class CalliopeiaAPIClient(
         private val FORBIDDEN_PASSTHROUGH_KEYS = setOf("__proto__", "prototype", "constructor")
 
         private val CREATE_AUDIO_UPLOAD_MUTATION = """
-            mutation CreateAudioUpload(${dollar}credential: String!, ${dollar}authType: String!, ${dollar}fileName: String!, ${dollar}contentType: String!) {
-              externalCreateAudioUpload(credential: ${dollar}credential, authType: ${dollar}authType, fileName: ${dollar}fileName, contentType: ${dollar}contentType) {
+            mutation CreateAudioUpload(${dollar}credential: String!, ${dollar}authType: String!, ${dollar}fileName: String!, ${dollar}contentType: String!, ${dollar}fileSizeBytes: Int!) {
+              externalCreateAudioUpload(credential: ${dollar}credential, authType: ${dollar}authType, fileName: ${dollar}fileName, contentType: ${dollar}contentType, fileSizeBytes: ${dollar}fileSizeBytes) {
                 success
                 error
                 upload { objectKey uploadUrl method contentType expiresAt }

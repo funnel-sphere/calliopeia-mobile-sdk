@@ -25,7 +25,7 @@ OS標準の録音API、Calliopeia API契約、認証差し替え、任意のパ�
 
 ## iOS (Swift Package Manager)
 
-XcodeのPackage Dependenciesへ次を追加し、`0.3.0`以降を指定します。
+XcodeのPackage Dependenciesへ次を追加し、`0.4.0`以降を指定します。
 
 ```text
 https://github.com/funnel-sphere/calliopeia-mobile-sdk
@@ -36,7 +36,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```swift
 .package(
     url: "https://github.com/funnel-sphere/calliopeia-mobile-sdk.git",
-    from: "0.3.0"
+    from: "0.4.0"
 )
 ```
 
@@ -50,7 +50,7 @@ https://github.com/funnel-sphere/calliopeia-mobile-sdk
 ```ruby
 pod 'CalliopeiaSDK',
     git: 'https://github.com/funnel-sphere/calliopeia-mobile-sdk.git',
-    tag: '0.3.0'
+    tag: '0.4.0'
 ```
 
 ```bash
@@ -145,10 +145,9 @@ credentialを別々に設定します。長期APIキーや固定JWTをアプリ�
 
 ## Android
 
-Androidの高品質録音・メールOTP・現行API対応は`main`にあります。
-この更新を利用する場合はリポジトリを取得して`android`を開き、
+Androidの高品質録音・メールOTP・現行API対応は`0.4.0`に含まれます。
+この更新を利用する場合は`0.4.0`タグのリポジトリを取得して`android`を開き、
 `calliopeia-sdk`と、ログインが必要なら`calliopeia-auth`を参照してください。
-公開済みタグ`0.3.0`には今回のAndroid更新は含まれていません。
 
 ```kotlin
 dependencies {
@@ -223,8 +222,17 @@ Keychainへセッションを保存・復元します。JWTの手入力はあり
 AndroidサンプルもメールOTPとセッション復元を使います。原音WAV・M4Aを保存し、
 ログイン後に明示的に送信して結果を確認できます。
 
-iOS RecorderサンプルとAndroid更新は`main`に追加されています。サンプルを利用する場合は
-このブランチを取得してください。SDKの公開タグ`0.3.0`は変更していません。
+iOS RecorderサンプルとAndroid更新は`0.4.0`に含まれます。サンプルを利用する場合も
+このタグを取得してください。
+
+## 0.4.0への更新
+
+音声アップロードURL発行時に必須の`fileSizeBytes`を送信するよう修正しました。
+`submitAudio`と`PendingAudioSubmission.submit`は実ファイルからサイズを自動取得します。
+`createAudioUpload`を直接呼ぶコードは、Swiftでは`fileSizeBytes: Int`、
+Kotlinでは`fileSizeBytes: Long`を追加してください。
+iOSサンプルの`PendingAudioSubmission`をコピーして利用している場合は、
+[更新後の実装](samples/ios/CalliopeiaSample/PendingAudioSubmission.swift)も取り込んでください。
 
 ## ビルドとテスト
 

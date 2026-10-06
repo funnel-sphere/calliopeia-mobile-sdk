@@ -16,10 +16,11 @@ class CalliopeiaPendingAudioSubmission(
     private var submission: CalliopeiaJobSubmission? = null
     suspend fun submit(api: CalliopeiaAPIClient): CalliopeiaJobSubmission = mutex.withLock {
         submission?.let { return@withLock it }
-        val uploaded = ticket ?: api.createAudioUpload(file.name, contentType).also {
+        val fileSizeBytes = file.length()
+        val uploaded = ticket ?: api.createAudioUpload(file.name, contentType, fileSizeBytes).also {
             api.uploadAudio(file, it)
             ticket = it
         }
-        api.invokeAudioJob(uploaded, file.name, file.length(), audioSeconds, request).also { submission = it }
+        api.invokeAudioJob(uploaded, file.name, fileSizeBytes, audioSeconds, request).also { submission = it }
     }
 }

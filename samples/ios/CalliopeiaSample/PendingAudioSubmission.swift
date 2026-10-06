@@ -17,15 +17,17 @@ final class PendingAudioSubmission {
     }
 
     func submit(using api: CalliopeiaAPIClient) async throws -> CalliopeiaJobSubmission {
+        guard let size = try fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+            throw CalliopeiaSDKError.invalidRequest("unable to determine audio file size")
+        }
         if ticket == nil {
-            let created = try await api.createAudioUpload(fileName: fileURL.lastPathComponent, contentType: "audio/mp4")
+            let created = try await api.createAudioUpload(fileName: fileURL.lastPathComponent, contentType: "audio/mp4", fileSizeBytes: size)
             try await api.uploadAudio(fileURL: fileURL, using: created)
             // No job has been invoked before this point. After this point, never
             // create a replacement objectKey for this idempotency key.
             ticket = created
         }
         guard let ticket else { throw CalliopeiaSDKError.invalidRequest("upload did not complete") }
-        let size = try fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
         return try await api.invokeAudioJob(ticket: ticket, fileName: fileURL.lastPathComponent,
                                            fileSizeBytes: size, audioSeconds: durationSeconds, request: request)
     }
